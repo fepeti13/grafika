@@ -5,6 +5,7 @@ namespace Szeminarium1
 {
     internal static class Program
     {
+        //I added a lot of comments to this code
         private static IWindow graphicWindow;
 
         private static GL Gl;
