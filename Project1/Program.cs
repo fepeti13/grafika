@@ -55,9 +55,6 @@ namespace Szeminarium1
 
         private static void GraphicWindow_Load()
         {
-            // egszeri beallitasokat
-            //Console.WriteLine("Loaded");
-
             Gl = graphicWindow.CreateOpenGL();
 
             Gl.ClearColor(System.Drawing.Color.White);
