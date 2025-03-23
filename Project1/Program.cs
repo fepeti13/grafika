@@ -1,11 +1,10 @@
-﻿using Silk.NET.OpenGL;
+﻿﻿using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
 namespace Szeminarium1
 {
     internal static class Program
     {
-        //I added a lot of comments to this code
         private static IWindow graphicWindow;
 
         private static GL Gl;
@@ -108,23 +107,43 @@ namespace Szeminarium1
             uint vao = Gl.GenVertexArray();
             Gl.BindVertexArray(vao);
 
-            float[] vertexArray = new float[] { //itt vannak a csucsok
-                -0.5f, -0.5f, 0.0f,   //x, y, z kordinatak
-                +0.5f, -0.5f, 0.0f,
-                 0.0f, +0.5f, 0.0f,
-                 1f, 1f, 0f
+            float[] vertexArray = new float[] {
+                0.0f, -0.5f, 0.0f, //0
+                0.5f, 0.0f, 0.0f, //1
+                +0.0f, +0.0f, 0.0f, //2
+                0.5f, 0.5f, 0.0f, //3
+                0.5f, 0.5f, 0.0f, //4
+                0.0f, 1f, 0.0f, //5
+                0.0f, 0.0f, 0.0f, //6
+                -0.5f, 0.5f, 0.0f, //7
+                -0.5f, 0.5f, 0.0f, //8
+                -0.5f, 0.0f, 0.0f, //9
+                0.0f, 0.0f, 0.0f, //10
+                0.0f, -0.5f, 0.0f, //11
             };
 
-            float[] colorArray = new float[] {  //megadja a csucsok szinet
-                1.0f, 0.0f, 0.0f, 1.0f,  //rgb + alpha - atlathatosag
-                0.0f, 1.0f, 0.0f, 1.0f,
+            float[] colorArray = new float[] {
+                0.0f, 1.0f, 0.0f, 1.0f, 
+                0.0f, 1.0f, 0.0f, 1.0f, 
+                0.0f, 1.0f, 0.0f, 1.0f, 
+                0.0f, 1.0f, 0.0f, 1.0f, 
+                0.0f, 0.0f, 1.0f, 1.0f, 
+                0.0f, 0.0f, 1.0f, 1.0f,  
+                0.0f, 0.0f, 1.0f, 1.0f,
                 0.0f, 0.0f, 1.0f, 1.0f,
                 1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f, 
+                1.0f, 0.0f, 0.0f, 1.0f, 
+                1.0f, 0.0f, 0.0f, 1.0f,  
             };
 
-            uint[] indexArray = new uint[] {  //a csucsok sorrendjet adja meg
-                0, 1, 2,        //haromszogeket fogunk kirajzolni
-                2, 1, 3         //ilyen sorrendben
+            uint[] indexArray = new uint[] { 
+                0, 1, 2,
+                1, 3, 2,
+                4, 5, 6,
+                5, 7, 6,
+                8, 9, 10,
+                9, 11, 10
             };
 
             uint vertices = Gl.GenBuffer();

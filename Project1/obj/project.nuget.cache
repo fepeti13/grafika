@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "n4TC9qFPJ1o=",
+  "dgSpecHash": "fx5F2/K4jdE=",
   "success": true,
-  "projectFilePath": "/home/fepeti13/Desktop/University/II/II/Grafika/Project1/Project1.csproj",
+  "projectFilePath": "/home/fepeti13/Desktop/University/II/II/grafika/Project1/Project1.csproj",
   "expectedPackageFiles": [
     "/home/fepeti13/.nuget/packages/microsoft.csharp/4.7.0/microsoft.csharp.4.7.0.nupkg.sha512",
     "/home/fepeti13/.nuget/packages/microsoft.dotnet.platformabstractions/3.1.6/microsoft.dotnet.platformabstractions.3.1.6.nupkg.sha512",
