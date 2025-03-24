@@ -1,36 +1,32 @@
 ﻿﻿using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using System;
 
 namespace Szeminarium1
 {
     internal static class Program
     {
         private static IWindow graphicWindow;
-
         private static GL Gl;
-
         private static uint program;
 
         private static readonly string VertexShaderSource = @"
         #version 330 core
         layout (location = 0) in vec3 vPos;
-		layout (location = 1) in vec4 vCol;
+        layout (location = 1) in vec4 vCol;
+        out vec4 outCol;
 
-		out vec4 outCol;
-        
         void main()
         {
-			outCol = vCol;
+            outCol = vCol;
             gl_Position = vec4(vPos.x, vPos.y, vPos.z, 1.0);
         }
         ";
 
-
         private static readonly string FragmentShaderSource = @"
         #version 330 core
         out vec4 FragColor;
-		
-		in vec4 outCol;
+        in vec4 outCol;
 
         void main()
         {
@@ -40,311 +36,132 @@ namespace Szeminarium1
 
         static void Main(string[] args)
         {
-            WindowOptions windowOptions = WindowOptions.Default;
-            windowOptions.Title = "1. szeminárium - háromszög";
-            windowOptions.Size = new Silk.NET.Maths.Vector2D<int>(500, 500);
+            try
+            {
+                WindowOptions windowOptions = WindowOptions.Default;
+                windowOptions.Title = "1. szeminárium - háromszög";
+                windowOptions.Size = new Silk.NET.Maths.Vector2D<int>(500, 500);
 
-            graphicWindow = Window.Create(windowOptions);
+                graphicWindow = Window.Create(windowOptions);
 
-            graphicWindow.Load += GraphicWindow_Load;
-            graphicWindow.Update += GraphicWindow_Update;
-            graphicWindow.Render += GraphicWindow_Render;
+                graphicWindow.Load += GraphicWindow_Load;
+                graphicWindow.Update += GraphicWindow_Update;
+                graphicWindow.Render += GraphicWindow_Render;
 
-            graphicWindow.Run();
+                graphicWindow.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error initializing window: " + ex.Message);
+            }
         }
 
         private static void GraphicWindow_Load()
         {
-            Gl = graphicWindow.CreateOpenGL();
-
-            Gl.ClearColor(System.Drawing.Color.White);
-
-            uint vshader = Gl.CreateShader(ShaderType.VertexShader);
-            uint fshader = Gl.CreateShader(ShaderType.FragmentShader);
-
-            Gl.ShaderSource(vshader, VertexShaderSource);
-            Gl.CompileShader(vshader);
-            Gl.GetShader(vshader, ShaderParameterName.CompileStatus, out int vStatus);
-            if (vStatus != (int)GLEnum.True)
-                throw new Exception("Vertex shader failed to compile: " + Gl.GetShaderInfoLog(vshader));
-
-            Gl.ShaderSource(fshader, FragmentShaderSource);
-            Gl.CompileShader(fshader);
-
-            program = Gl.CreateProgram();
-            Gl.AttachShader(program, vshader);
-            Gl.AttachShader(program, fshader);
-            Gl.LinkProgram(program);
-            Gl.DetachShader(program, vshader);
-            Gl.DetachShader(program, fshader);
-            Gl.DeleteShader(vshader);
-            Gl.DeleteShader(fshader);
-
-            Gl.GetProgram(program, GLEnum.LinkStatus, out var status);
-            if (status == 0)
+            try
             {
-                Console.WriteLine($"Error linking shader {Gl.GetProgramInfoLog(program)}");
-            }
+                Gl = graphicWindow.CreateOpenGL();
+                Gl.ClearColor(System.Drawing.Color.White);
 
+                uint vshader = Gl.CreateShader(ShaderType.VertexShader);
+                uint fshader = Gl.CreateShader(ShaderType.FragmentShader);
+
+                Gl.ShaderSource(vshader, VertexShaderSource);
+                Gl.CompileShader(vshader);
+                Gl.GetShader(vshader, ShaderParameterName.CompileStatus, out int vStatus);
+                if (vStatus != (int)GLEnum.True)
+                    throw new Exception("Vertex shader failed to compile: " + Gl.GetShaderInfoLog(vshader));
+
+                Gl.ShaderSource(fshader, FragmentShaderSource);
+                Gl.CompileShader(fshader);
+                Gl.GetShader(fshader, ShaderParameterName.CompileStatus, out int fStatus);
+                if (fStatus != (int)GLEnum.True)
+                    throw new Exception("Fragment shader failed to compile: " + Gl.GetShaderInfoLog(fshader));
+
+                program = Gl.CreateProgram();
+                Gl.AttachShader(program, vshader);
+                Gl.AttachShader(program, fshader);
+                Gl.LinkProgram(program);
+
+                Gl.GetProgram(program, GLEnum.LinkStatus, out var status);
+                if (status == 0)
+                    throw new Exception("Shader linking failed: " + Gl.GetProgramInfoLog(program));
+
+                Gl.DetachShader(program, vshader);
+                Gl.DetachShader(program, fshader);
+                Gl.DeleteShader(vshader);
+                Gl.DeleteShader(fshader);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during OpenGL initialization: " + ex.Message);
+            }
         }
 
         private static void GraphicWindow_Update(double deltaTime)
         {
-            // NO GL
-            // make it threadsave
-            //Console.WriteLine($"Update after {deltaTime} [s]");
+            try
+            {
+                // No OpenGL operations here
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in update loop: " + ex.Message);
+            }
         }
 
         private static unsafe void GraphicWindow_Render(double deltaTime)
         {
-            //Console.WriteLine($"Render after {deltaTime} [s]");
+            try
+            {
+                Gl.Clear(ClearBufferMask.ColorBufferBit);
 
-            Gl.Clear(ClearBufferMask.ColorBufferBit);
+                uint vao = Gl.GenVertexArray();
+                Gl.BindVertexArray(vao);
 
-            uint vao = Gl.GenVertexArray();
-            Gl.BindVertexArray(vao);
+                float[] vertexArray = new float[]
+                {
+                    -0.5f, -0.5f, 0.0f,
+                    +0.5f, -0.5f, 0.0f,
+                     0.0f, +0.5f, 0.0f,
+                     1f, 1f, 0f
+                };
 
-            float[] vertexArray = new float[] {
-                0.0f, -0.5f, 0.0f, //0
-                0.5f, 0.0f, 0.0f, //1
-                +0.0f, +0.0f, 0.0f, //2
-                0.5f, 0.5f, 0.0f, //3
-                0.5f, 0.5f, 0.0f, //4
-                0.0f, 1f, 0.0f, //5
-                0.0f, 0.0f, 0.0f, //6
-                -0.5f, 0.5f, 0.0f, //7
-                -0.5f, 0.5f, 0.0f, //8
-                -0.5f, 0.0f, 0.0f, //9
-                0.0f, 0.0f, 0.0f, //10
-                0.0f, -0.5f, 0.0f, //11
+                float[] colorArray = new float[]
+                {
+                    1.0f, 0.0f, 0.0f, 1.0f,
+                    0.0f, 1.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f, 1.0f,
+                    1.0f, 0.0f, 0.0f, 1.0f,
+                };
 
-                //csik 1
-                0.16f, -0.33f, 0.0f, //12
-                0.17f, -0.32f, 0.0f, //13
-                0.16f, 0.16f, 0.0f, //14
-                0.17f, 0.17f, 0.0f, //15
+                uint[] indexArray = new uint[] { 0, 1, 2, 2, 1, 3 };
 
-                //csik 2
-                0.32f, -0.16f, 0.0f, //16
-                0.33f, -0.15f, 0.0f, //17
-                0.32f, 0.32f, 0.0f, //18
-                0.33f, 0.33f, 0.0f, //19
+                uint vertices = Gl.GenBuffer();
+                Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
+                Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)vertexArray.AsSpan(), GLEnum.StaticDraw);
+                Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, null);
+                Gl.EnableVertexAttribArray(0);
 
-                //csik 3
-                0.0f, -0.33f, 0.0f, //20
-                0.0f, -0.32f, 0.0f, //21
-                0.5f, 0.16f, 0.0f, //22
-                0.5f, 0.17f, 0.0f, //23
+                uint colors = Gl.GenBuffer();
+                Gl.BindBuffer(GLEnum.ArrayBuffer, colors);
+                Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)colorArray.AsSpan(), GLEnum.StaticDraw);
+                Gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
+                Gl.EnableVertexAttribArray(1);
 
-                //csik 4
-                0.0f, -0.17f, 0.0f, //24
-                0.0f, -0.16f, 0.0f, //25
-                0.5f, 0.32f, 0.0f, //26
-                0.5f, 0.33f, 0.0f, //27
+                uint indices = Gl.GenBuffer();
+                Gl.BindBuffer(GLEnum.ElementArrayBuffer, indices);
+                Gl.BufferData(GLEnum.ElementArrayBuffer, (ReadOnlySpan<uint>)indexArray.AsSpan(), GLEnum.StaticDraw);
 
-                //csik5
-                //20
-                //21
-                -0.5f, 0.16f, 0.0f, //28
-                -0.5f, 0.17f, 0.0f, //29
+                Gl.UseProgram(program);
+                Gl.DrawElements(PrimitiveType.Triangles, (uint)indexArray.Length, DrawElementsType.UnsignedInt, null);
 
-                //csik6
-                //24
-                //25
-                -0.5f, 0.32f, 0.0f, //30
-                -0.5f, 0.33f, 0.0f, //31
-
-                //csik7
-                -0.16f, -0.33f, 0.0f, //32
-                -0.17f, -0.32f, 0.0f, //33
-                -0.16f, 0.16f, 0.0f, //34
-                -0.17f, 0.17f, 0.0f, //35
-
-                //csik8
-                -0.32f, -0.16f, 0.0f, //36
-                -0.33f, -0.17f, 0.0f, //37
-                -0.32f, 0.32f, 0.0f, //38
-                -0.33f, 0.3f, 0.0f, //39
-
-                //csik9
-                //14
-                //15
-                -0.33f, 0.66f, 0.0f, //40
-                -0.32f, 0.67f, 0.0f, //41
-
-                //csik10
-                //18
-                //19
-                -0.17f, 0.82f, 0.0f, //42
-                -0.16f, 0.83f, 0.0f, //43
-                
-                //csik11
-                //18
-                //19
-                0.33f, 0.66f, 0.0f, //44
-                0.32f, 0.67f, 0.0f, //45
-
-                //csik12
-                //18
-                //19
-                0.17f, 0.82f, 0.0f, //46
-                0.16f, 0.83f, 0.0f, //47
-            };
-
-            float[] colorArray = new float[] {
-                //oldal
-                0.0f, 1.0f, 0.0f, 1.0f, 
-                0.0f, 1.0f, 0.0f, 1.0f, 
-                0.0f, 1.0f, 0.0f, 1.0f, 
-                0.0f, 1.0f, 0.0f, 1.0f, 
-                
-                //oldal
-                0.0f, 0.0f, 1.0f, 1.0f, 
-                0.0f, 0.0f, 1.0f, 1.0f,  
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                
-                //oldal
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f, 
-                1.0f, 0.0f, 0.0f, 1.0f, 
-                1.0f, 0.0f, 0.0f, 1.0f,
-                
-                //csik1
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik2
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik3
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik4
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik5
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik6
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik7
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik8
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik9
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik10
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik11
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-
-                //csik12
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-            };
-
-            uint[] indexArray = new uint[] { 
-                0, 1, 2,
-                1, 3, 2,
-                4, 5, 6,
-                5, 7, 6,
-                8, 9, 10,
-                9, 11, 10,
-                //csik1
-                12, 13, 14,
-                15, 14, 13,
-                //csik2
-                16, 17, 18,
-                19, 18, 17,
-                //csik3
-                20, 22, 21,
-                22, 23, 21,
-                //csik4
-                24, 27, 25,
-                26, 27, 25,
-                //csik5
-                20, 21, 28,
-                29, 28, 21,
-                //csik6
-                24, 25, 30,
-                31, 30, 25,
-                //csik7
-                33, 32, 35,
-                34, 35, 32,
-                //csik8
-                37, 36, 39,
-                38, 39, 36,
-                //csik9
-                14, 15, 40,
-                41, 40, 15,
-                //csik10
-                18, 19, 42,
-                43, 42, 19,
-                //csik11
-                35, 34, 44,
-                44, 45, 35,
-                //csik12
-                39, 38, 46,
-                46, 47, 39,
-            };
-
-            uint vertices = Gl.GenBuffer();
-            Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
-            Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)vertexArray.AsSpan(), GLEnum.StaticDraw);
-            Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, null);
-            Gl.EnableVertexAttribArray(0);
-
-            uint colors = Gl.GenBuffer();
-            Gl.BindBuffer(GLEnum.ArrayBuffer, colors);
-            Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)colorArray.AsSpan(), GLEnum.StaticDraw);
-            Gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
-            Gl.EnableVertexAttribArray(1);
-
-            uint indices = Gl.GenBuffer();
-            Gl.BindBuffer(GLEnum.ElementArrayBuffer, indices);
-            Gl.BufferData(GLEnum.ElementArrayBuffer, (ReadOnlySpan<uint>)indexArray.AsSpan(), GLEnum.StaticDraw);
-
-            Gl.BindBuffer(GLEnum.ArrayBuffer, 0);
-
-            Gl.UseProgram(program);
-            
-            Gl.DrawElements(GLEnum.Triangles, (uint)indexArray.Length, GLEnum.UnsignedInt, null); // we used element buffer
-            Gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
-            Gl.BindVertexArray(vao);
-
-            // always unbound the vertex buffer first, so no halfway results are displayed by accident
-            Gl.DeleteBuffer(vertices);
-            Gl.DeleteBuffer(colors);
-            Gl.DeleteBuffer(indices);
-            Gl.DeleteVertexArray(vao);
+                Gl.BindVertexArray(0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during rendering: " + ex.Message);
+            }
         }
     }
 }
