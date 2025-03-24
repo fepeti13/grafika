@@ -12,25 +12,25 @@ namespace Szeminarium1
 
         private static readonly string VertexShaderSource = @"
         #version 330 core
-        layout (location = 0) in vec3 vPos;
-        layout (location = 1) in vec4 vCol;
+        layout (location = 1) in vec4 vCol; // Hibas, hianyzik a vPos
+
         out vec4 outCol;
 
         void main()
         {
             outCol = vCol;
-            gl_Position = vec4(vPos.x, vPos.y, vPos.z, 1.0);
+            gl_Position = vec4(vPos.x, vPos.y, vPos.z, 1.0); // vPos nincs definialva
         }
-        ";
+            ";
 
         private static readonly string FragmentShaderSource = @"
         #version 330 core
-        out vec4 FragColor;
+        out vec4 FrgColor; // Hibas valtozonev, helyesen FragColor lenne
         in vec4 outCol;
 
         void main()
         {
-            FragColor = outCol;
+            FragColor = outCol; // Hibas, mert a kimeneti valtozo neve rossz
         }
         ";
 
@@ -72,8 +72,8 @@ namespace Szeminarium1
                 if (vStatus != (int)GLEnum.True)
                     throw new Exception("Vertex shader failed to compile: " + Gl.GetShaderInfoLog(vshader));
 
-                //Gl.ShaderSource(fshader, FragmentShaderSource);
-                //Gl.CompileShader(fshader);
+                Gl.ShaderSource(fshader, FragmentShaderSource);
+                Gl.CompileShader(fshader);
                 Gl.GetShader(fshader, ShaderParameterName.CompileStatus, out int fStatus);
                 if (fStatus != (int)GLEnum.True)
                     throw new Exception("Fragment shader failed to compile: " + Gl.GetShaderInfoLog(fshader));
