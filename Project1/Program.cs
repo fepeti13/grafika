@@ -66,8 +66,8 @@ namespace Szeminarium1
                 uint vshader = Gl.CreateShader(ShaderType.VertexShader);
                 uint fshader = Gl.CreateShader(ShaderType.FragmentShader);
 
-                //Gl.ShaderSource(vshader, VertexShaderSource);
-                //Gl.CompileShader(vshader);
+                Gl.ShaderSource(vshader, VertexShaderSource);
+                Gl.CompileShader(vshader);
                 Gl.GetShader(vshader, ShaderParameterName.CompileStatus, out int vStatus);
                 if (vStatus != (int)GLEnum.True)
                     throw new Exception("Vertex shader failed to compile: " + Gl.GetShaderInfoLog(vshader));
@@ -131,11 +131,14 @@ namespace Szeminarium1
                 {
                     1.0f, 0.0f, 0.0f, 1.0f,
                     0.0f, 1.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f, 1.0f,
-                    1.0f, 0.0f, 0.0f, 1.0f,
+                    //0.0f, 0.0f, 1.0f, 1.0f,
+                    //1.0f, 0.0f, 0.0f, 1.0f,
                 };
 
-                uint[] indexArray = new uint[] { 0, 1, 2, 2, 1, 3 };
+                uint[] indexArray = new uint[] {
+                    0, 1, 2,
+                    2, ,3 
+                };
 
                 uint vertices = Gl.GenBuffer();
                 Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
