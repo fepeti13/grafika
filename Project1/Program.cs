@@ -72,8 +72,8 @@ namespace Szeminarium1
                 if (vStatus != (int)GLEnum.True)
                     throw new Exception("Vertex shader failed to compile: " + Gl.GetShaderInfoLog(vshader));
 
-                Gl.ShaderSource(fshader, FragmentShaderSource);
-                Gl.CompileShader(fshader);
+                //Gl.ShaderSource(fshader, FragmentShaderSource);
+                //Gl.CompileShader(fshader);
                 Gl.GetShader(fshader, ShaderParameterName.CompileStatus, out int fStatus);
                 if (fStatus != (int)GLEnum.True)
                     throw new Exception("Fragment shader failed to compile: " + Gl.GetShaderInfoLog(fshader));
@@ -144,7 +144,7 @@ namespace Szeminarium1
                 Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
                 Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)vertexArray.AsSpan(), GLEnum.StaticDraw);  
                 Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, null);
-                Gl.EnableVertexAttribArray(2, true);
+                Gl.EnableVertexAttribArray(0);
 
                 uint colors = Gl.GenBuffer();
                 Gl.BindBuffer(GLEnum.ArrayBuffer, colors);
