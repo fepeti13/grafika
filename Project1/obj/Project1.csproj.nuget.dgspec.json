@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/fepeti13/Desktop/University/II/II/Grafika/Project1/Project1.csproj": {}
+    "/home/fepeti13/Desktop/University/II/II/grafika/Project1/Project1.csproj": {}
   },
   "projects": {
-    "/home/fepeti13/Desktop/University/II/II/Grafika/Project1/Project1.csproj": {
+    "/home/fepeti13/Desktop/University/II/II/grafika/Project1/Project1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/fepeti13/Desktop/University/II/II/Grafika/Project1/Project1.csproj",
+        "projectUniqueName": "/home/fepeti13/Desktop/University/II/II/grafika/Project1/Project1.csproj",
         "projectName": "Project1",
-        "projectPath": "/home/fepeti13/Desktop/University/II/II/Grafika/Project1/Project1.csproj",
+        "projectPath": "/home/fepeti13/Desktop/University/II/II/grafika/Project1/Project1.csproj",
         "packagesPath": "/home/fepeti13/.nuget/packages/",
-        "outputPath": "/home/fepeti13/Desktop/University/II/II/Grafika/Project1/obj/",
+        "outputPath": "/home/fepeti13/Desktop/University/II/II/grafika/Project1/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/fepeti13/.nuget/NuGet/NuGet.Config"

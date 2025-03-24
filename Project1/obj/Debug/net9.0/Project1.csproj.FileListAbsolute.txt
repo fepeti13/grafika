@@ -35,3 +35,4 @@
 /home/fepeti13/Desktop/University/II/II/Grafika/Project1/obj/Debug/net9.0/Project1.pdb
 /home/fepeti13/Desktop/University/II/II/Grafika/Project1/obj/Debug/net9.0/Project1.genruntimeconfig.cache
 /home/fepeti13/Desktop/University/II/II/Grafika/Project1/obj/Debug/net9.0/ref/Project1.dll
+/home/fepeti13/Desktop/University/II/II/grafika/Project1/obj/Debug/net9.0/Project1.sourcelink.json
