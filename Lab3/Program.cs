@@ -3,7 +3,6 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
-using System.Dynamic;
 using System.Numerics;
 using System.Reflection;
 using Szeminarium;
@@ -13,15 +12,14 @@ namespace GrafikaSzeminarium
     internal class Program
     {
         private static IWindow graphicWindow;
-
         private static GL Gl;
-
         private static ImGuiController imGuiController;
-
-        private static ModelObjectDescriptor rectangle;
+        
+         
+        private static ModelObjectDescriptor barrelWithFlatNormals;
+        private static ModelObjectDescriptor barrelWithAngledNormals;
 
         private static CameraDescriptor camera = new CameraDescriptor();
-
         private static CubeArrangementModel cubeArrangementModel = new CubeArrangementModel();
 
         private const string ModelMatrixVariableName = "uModel";
@@ -36,21 +34,16 @@ namespace GrafikaSzeminarium
         private const string ShinenessVariableName = "uShininess";
 
         private static float shininess = 50;
-
         private static uint program;
-
-        private static uint numberOfRectangles = 18;
-        //private static List<ModelObjectDescriptor> rectangles = new();
+        private static readonly uint numberOfRectangles = 18;
 
         private static List<Matrix4X4<float>> rectangleModelMatrices = new List<Matrix4X4<float>>();
-
-        private static List<Vector3D<float>> rectanglePositions = new();
 
         static void Main(string[] args)
         {
             WindowOptions windowOptions = WindowOptions.Default;
             windowOptions.Title = "Grafika szeminárium";
-            windowOptions.Size = new Silk.NET.Maths.Vector2D<int>(500, 500);
+            windowOptions.Size = new Vector2D<int>(800, 800);
 
             graphicWindow = Window.Create(windowOptions);
 
@@ -64,7 +57,8 @@ namespace GrafikaSzeminarium
 
         private static void GraphicWindow_Closing()
         {
-            rectangle.Dispose();
+            barrelWithFlatNormals.Dispose();
+            barrelWithAngledNormals.Dispose();
             Gl.DeleteProgram(program);
         }
 
@@ -78,30 +72,27 @@ namespace GrafikaSzeminarium
                 keyboard.KeyDown += Keyboard_KeyDown;
             }
 
-            // Handle resizes
+             
             graphicWindow.FramebufferResize += s =>
             {
-                // Adjust the viewport to the new window size
                 Gl.Viewport(s);
             };
 
-
-
             imGuiController = new ImGuiController(Gl, graphicWindow, inputContext);
 
-            //cube = ModelObjectDescriptor.CreateCube(Gl);
-
-            SetUpRectangles();
+             
+            SetUpBarrels();
 
             Gl.ClearColor(System.Drawing.Color.White);
             
             Gl.Enable(EnableCap.CullFace);
             Gl.CullFace(TriangleFace.Back);
+             
 
             Gl.Enable(EnableCap.DepthTest);
             Gl.DepthFunc(DepthFunction.Lequal);
 
-
+             
             uint vshader = Gl.CreateShader(ShaderType.VertexShader);
             uint fshader = Gl.CreateShader(ShaderType.FragmentShader);
 
@@ -126,10 +117,6 @@ namespace GrafikaSzeminarium
             Gl.DetachShader(program, fshader);
             Gl.DeleteShader(vshader);
             Gl.DeleteShader(fshader);
-            if ((ErrorCode)Gl.GetError() != ErrorCode.NoError)
-            {
-
-            }
 
             Gl.GetProgram(program, GLEnum.LinkStatus, out var status);
             if (status == 0)
@@ -138,19 +125,22 @@ namespace GrafikaSzeminarium
             }
         }
 
-        private static unsafe void SetUpRectangles()
+        private static unsafe void SetUpBarrels()
         {
-            float width = ModelObjectDescriptor.width;
-            float height = ModelObjectDescriptor.height;
-            float depth = ModelObjectDescriptor.depth;
-
+            float height = 2.0f;  
+            float width = 1.0f;   
+            float depth = 0.1f;   
+             
             float angleStep = 360f / numberOfRectangles;
-            float angleRadians = MathF.PI / numberOfRectangles;
+            float halfAngleRad = (angleStep / 2) * MathF.PI / 180f;  
+             
+            float radius = (width / 2) / MathF.Sin(halfAngleRad);
 
-            float radius = width / MathF.Tan(angleRadians);
+            barrelWithFlatNormals = ModelObjectDescriptor.CreateRectangleWithFlatNormals(Gl, width, height, depth);
+            
+            barrelWithAngledNormals = ModelObjectDescriptor.CreateRectangleWithAngledNormals(Gl, width, height, depth);
 
-            rectangle = ModelObjectDescriptor.CreateCube(Gl);
-
+            rectangleModelMatrices.Clear();
             for (int i = 0; i < numberOfRectangles; i++)
             {
                 float currentAngleDeg = i * angleStep;
@@ -160,7 +150,7 @@ namespace GrafikaSzeminarium
                 float z = radius * MathF.Cos(currentAngleRad);
 
                 var modelMatrixRectangle =
-                    Matrix4X4.CreateRotationY(MathF.PI * currentAngleDeg / 180f) *
+                    Matrix4X4.CreateRotationY(currentAngleRad) *
                     Matrix4X4.CreateTranslation(x, 0f, z);
 
                 rectangleModelMatrices.Add(modelMatrixRectangle);
@@ -209,10 +199,7 @@ namespace GrafikaSzeminarium
 
         private static void GraphicWindow_Update(double deltaTime)
         {
-            // NO OpenGL
-            // make it threadsafe
             cubeArrangementModel.AdvanceTime(deltaTime);
-
             imGuiController.Update((float)deltaTime);
         }
 
@@ -223,43 +210,46 @@ namespace GrafikaSzeminarium
 
             Gl.UseProgram(program);
 
+             
             SetUniform3(LightColorVariableName, new Vector3(1f, 1f, 1f));
-            SetUniform3(LightPositionVariableName, new Vector3(0f, 1.2f, 0f));
+            
+             
+            Vector3 lightPosition = new Vector3(camera.Position.X, camera.Position.Y, camera.Position.Z);
+            SetUniform3(LightPositionVariableName, lightPosition);
+            
             SetUniform3(ViewPositionVariableName, new Vector3(camera.Position.X, camera.Position.Y, camera.Position.Z));
             SetUniform1(ShinenessVariableName, shininess);
 
+             
             var viewMatrix = Matrix4X4.CreateLookAt(camera.Position, camera.Target, camera.UpVector);
             SetMatrix(viewMatrix, ViewMatrixVariableName);
 
-            var projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView<float>((float)(Math.PI / 2), 1024f / 768f, 0.1f, 100f);
+            var projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView<float>((float)(Math.PI / 2), 
+                graphicWindow.Size.X / (float)graphicWindow.Size.Y, 0.1f, 100f);
             SetMatrix(projectionMatrix, ProjectionMatrixVariableName);
 
-            
-            
+             
+            Matrix4X4<float> upperBarrelMatrix = Matrix4X4.CreateTranslation(0f, 2f, 0f);
             for (int i = 0; i < numberOfRectangles; i++)
             {
-                SetModelMatrix(rectangleModelMatrices[i]);
-                DrawModelObject(rectangle);
+                var modelMatrix = rectangleModelMatrices[i] * upperBarrelMatrix;
+                SetModelMatrix(modelMatrix);
+                DrawModelObject(barrelWithFlatNormals);
             }
-            
-            /*
-            var modelMatrixCenterCube = Matrix4X4.CreateScale((float)cubeArrangementModel.CenterCubeScale);
-            SetModelMatrix(modelMatrixCenterCube);
-            DrawModelObject(cube);
 
-            Matrix4X4<float> diamondScale = Matrix4X4.CreateScale(0.25f);
-            Matrix4X4<float> rotx = Matrix4X4.CreateRotationX((float)Math.PI / 4f);
-            Matrix4X4<float> rotz = Matrix4X4.CreateRotationZ((float)Math.PI / 4f);
-            Matrix4X4<float> roty = Matrix4X4.CreateRotationY((float)cubeArrangementModel.DiamondCubeLocalAngle);
-            Matrix4X4<float> trans = Matrix4X4.CreateTranslation(1f, 1f, 0f);
-            Matrix4X4<float> rotGlobalY = Matrix4X4.CreateRotationY((float)cubeArrangementModel.DiamondCubeGlobalYAngle);
-            Matrix4X4<float> dimondCubeModelMatrix = diamondScale * rotx * rotz * roty * trans * rotGlobalY;
-            SetModelMatrix(dimondCubeModelMatrix);
-            DrawModelObject(cube);
-            */
 
-            //ImGuiNET.ImGui.ShowDemoWindow();
-            ImGuiNET.ImGui.Begin("Lighting", ImGuiNET.ImGuiWindowFlags.AlwaysAutoResize | ImGuiNET.ImGuiWindowFlags.NoCollapse);
+            Matrix4X4<float> lowerBarrelMatrix = Matrix4X4.CreateTranslation(0f, -2f, 0f);
+            for (int i = 0; i < numberOfRectangles; i++)
+            {
+                var modelMatrix = rectangleModelMatrices[i] * lowerBarrelMatrix;
+                SetModelMatrix(modelMatrix);
+                DrawModelObject(barrelWithAngledNormals);
+            }
+
+             
+            ImGuiNET.ImGui.Begin("Lighting Controls", ImGuiNET.ImGuiWindowFlags.AlwaysAutoResize | ImGuiNET.ImGuiWindowFlags.NoCollapse);
+            ImGuiNET.ImGui.Text("Top barrel: Flat normals (perpendicular to face)");
+            ImGuiNET.ImGui.Text("Bottom barrel: Angled normals (10° outward)");
             ImGuiNET.ImGui.SliderFloat("Shininess", ref shininess, 5, 100);
             ImGuiNET.ImGui.End();
 
@@ -270,14 +260,14 @@ namespace GrafikaSzeminarium
         {
             SetMatrix(modelMatrix, ModelMatrixVariableName);
 
-            // set also the normal matrix
+             
             int location = Gl.GetUniformLocation(program, NormalMatrixVariableName);
             if (location == -1)
             {
                 throw new Exception($"{NormalMatrixVariableName} uniform not found on shader.");
             }
 
-            // G = (M^-1)^T
+             
             var modelMatrixWithoutTranslation = new Matrix4X4<float>(modelMatrix.Row1, modelMatrix.Row2, modelMatrix.Row3, modelMatrix.Row4);
             modelMatrixWithoutTranslation.M41 = 0;
             modelMatrixWithoutTranslation.M42 = 0;
@@ -320,7 +310,7 @@ namespace GrafikaSzeminarium
         {
             Gl.BindVertexArray(modelObject.Vao);
             Gl.BindBuffer(GLEnum.ElementArrayBuffer, modelObject.Indices);
-            Gl.DrawElements(PrimitiveType.Triangles, modelObject.IndexArrayLength, DrawElementsType.UnsignedInt, null);
+            Gl.DrawElements(GLEnum.Triangles, (uint)modelObject.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
             Gl.BindVertexArray(0);
         }

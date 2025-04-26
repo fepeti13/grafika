@@ -1,170 +1,36 @@
 ﻿using Silk.NET.OpenGL;
-using Silk.NET.Vulkan;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics;
 
-namespace GrafikaSzeminarium
+namespace Szeminarium
 {
-    internal class ModelObjectDescriptor:IDisposable
+    public class ModelObjectDescriptor : IDisposable
     {
         private bool disposedValue;
 
+        public GL Gl { get; private set; }
         public uint Vao { get; private set; }
         public uint Vertices { get; private set; }
         public uint Colors { get; private set; }
         public uint Indices { get; private set; }
-        public uint IndexArrayLength { get; private set; }
+        public int IndexArrayLength { get; private set; }
+
         public static float width = 1.0f;
         public static float height = 2.0f;
-        public static float depth = 0.2f;
+        public static float depth = 0.1f;
 
-        private GL Gl;
+        private ModelObjectDescriptor() { }
 
-        public unsafe static ModelObjectDescriptor CreateCube(GL Gl)
+        public void Dispose()
         {
-            uint vao = Gl.GenVertexArray();
-            Gl.BindVertexArray(vao);
-
-            float[] vertexArray = new float[]
-            {
-                // top face
-                -width, height, depth, 0f, 1f, 0f,
-                width, height, depth, 0f, 1f, 0f,
-                width, height, -depth, 0f, 1f, 0f,
-                -width, height, -depth, 0f, 1f, 0f,
-
-                // front face
-                -width, height, depth, 0f, 0f, 1f,
-                -width, -height, depth, 0f, 0f, 1f,
-                width, -height, depth, 0f, 0f, 1f,
-                width, height, depth, 0f, 0f, 1f,
-
-                // left face
-                -width, height, depth, -1f, 0f, 0f,
-                -width, height, -depth, -1f, 0f, 0f,
-                -width, -height, -depth, -1f, 0f, 0f,
-                -width, -height, depth, -1f, 0f, 0f,
-
-                // bottom face
-                -width, -height, depth, 0f, -1f, 0f,
-                width, -height, depth, 0f, -1f, 0f,
-                width, -height, -depth, 0f, -1f, 0f,
-                -width, -height, -depth, 0f, -1f, 0f,
-
-                // back face
-                width, height, -depth, 0f, 0f, -1f,
-                -width, height, -depth, 0f, 0f, -1f,
-                -width, -height, -depth, 0f, 0f, -1f,
-                width, -height, -depth, 0f, 0f, -1f,
-
-                // right face
-                width, height, depth, 1f, 0f, 0f,
-                width, height, -depth, 1f, 0f, 0f,
-                width, -height, -depth, 1f, 0f, 0f,
-                width, -height, depth, 1f, 0f, 0f,
-            };
-
-            float[] colorArray = new float[] {
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 1.0f,
-
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 1.0f, 1.0f,
-
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 0.0f, 1.0f,
-            };
-
-            uint[] indexArray = new uint[] {
-                0, 1, 2,
-                0, 2, 3,
-
-                4, 5, 6,
-                4, 6, 7,
-
-                8, 9, 10,
-                10, 11, 8,
-
-                12, 14, 13,
-                12, 15, 14,
-
-                17, 16, 19,
-                17, 19, 18,
-
-                20, 22, 21,
-                20, 23, 22
-            };
-
-            uint vertices = Gl.GenBuffer();
-            Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
-            Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)vertexArray.AsSpan(), GLEnum.StaticDraw);
-            // 0 is position
-            // 2 is normals
-            uint offsetPos = 0;
-            uint offsetNormals = offsetPos + 3 * sizeof(float);
-            uint vertexSize = offsetNormals + 3 * sizeof(float);
-            Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, vertexSize, (void*)offsetPos);
-            Gl.EnableVertexAttribArray(0);
-            Gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, true, vertexSize, (void*)offsetNormals);
-            Gl.EnableVertexAttribArray(2);
-            Gl.BindBuffer(GLEnum.ArrayBuffer, 0);
-
-            uint colors = Gl.GenBuffer();
-            Gl.BindBuffer(GLEnum.ArrayBuffer, colors);
-            Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)colorArray.AsSpan(), GLEnum.StaticDraw);
-            // 1 is color
-            Gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
-            Gl.EnableVertexAttribArray(1);
-            Gl.BindBuffer(GLEnum.ArrayBuffer, 0);
-
-            uint indices = Gl.GenBuffer();
-            Gl.BindBuffer(GLEnum.ElementArrayBuffer, indices);
-            Gl.BufferData(GLEnum.ElementArrayBuffer, (ReadOnlySpan<uint>)indexArray.AsSpan(), GLEnum.StaticDraw);
-            Gl.BindBuffer(GLEnum.ElementArrayBuffer, 0);
-
-            return new ModelObjectDescriptor() {Vao= vao, Vertices = vertices, Colors = colors, Indices = indices, IndexArrayLength = (uint)indexArray.Length, Gl = Gl};
-
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-
-
-                // always unbound the vertex buffer first, so no halfway results are displayed by accident
+                 
                 Gl.DeleteBuffer(Vertices);
                 Gl.DeleteBuffer(Colors);
                 Gl.DeleteBuffer(Indices);
@@ -176,15 +42,363 @@ namespace GrafikaSzeminarium
 
         ~ModelObjectDescriptor()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: false);
         }
 
-        public void Dispose()
+        public static ModelObjectDescriptor CreateCube(GL gl)
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+             
+             
+            return CreateRectangleWithFlatNormals(gl, width, height, depth);
+        }
+
+         
+        public static unsafe ModelObjectDescriptor CreateRectangleWithFlatNormals(GL gl, float width, float height, float depth)
+        {
+             
+            uint vao = gl.GenVertexArray();
+            gl.BindVertexArray(vao);
+
+             
+             
+            float halfWidth = width / 2;
+            float halfHeight = height / 2;
+            float halfDepth = depth / 2;
+
+             
+             
+            float[] vertexArray = {
+                 
+                -halfWidth, -halfHeight, halfDepth, 0, 0, 1,
+                halfWidth, -halfHeight, halfDepth, 0, 0, 1,
+                halfWidth, halfHeight, halfDepth, 0, 0, 1,
+                -halfWidth, halfHeight, halfDepth, 0, 0, 1,
+
+                 
+                halfWidth, -halfHeight, -halfDepth, 0, 0, -1,
+                -halfWidth, -halfHeight, -halfDepth, 0, 0, -1,
+                -halfWidth, halfHeight, -halfDepth, 0, 0, -1,
+                halfWidth, halfHeight, -halfDepth, 0, 0, -1,
+
+                 
+                -halfWidth, halfHeight, halfDepth, 0, 1, 0,
+                halfWidth, halfHeight, halfDepth, 0, 1, 0,
+                halfWidth, halfHeight, -halfDepth, 0, 1, 0,
+                -halfWidth, halfHeight, -halfDepth, 0, 1, 0,
+
+                 
+                -halfWidth, -halfHeight, -halfDepth, 0, -1, 0,
+                halfWidth, -halfHeight, -halfDepth, 0, -1, 0,
+                halfWidth, -halfHeight, halfDepth, 0, -1, 0,
+                -halfWidth, -halfHeight, halfDepth, 0, -1, 0,
+
+                 
+                halfWidth, -halfHeight, halfDepth, 1, 0, 0,
+                halfWidth, -halfHeight, -halfDepth, 1, 0, 0,
+                halfWidth, halfHeight, -halfDepth, 1, 0, 0,
+                halfWidth, halfHeight, halfDepth, 1, 0, 0,
+
+                 
+                -halfWidth, -halfHeight, -halfDepth, -1, 0, 0,
+                -halfWidth, -halfHeight, halfDepth, -1, 0, 0,
+                -halfWidth, halfHeight, halfDepth, -1, 0, 0,
+                -halfWidth, halfHeight, -halfDepth, -1, 0, 0
+            };
+
+             
+            float[] colorArray = {
+                 
+                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+
+                 
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+
+                 
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+
+                 
+                1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 1.0f, 1.0f,
+
+                 
+                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, 1.0f,
+
+                 
+                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f
+            };
+
+             
+            uint[] indexArray = {
+                 
+                0, 1, 2,
+                0, 2, 3,
+
+                 
+                4, 5, 6,
+                4, 6, 7,
+
+                 
+                8, 9, 10,
+                8, 10, 11,
+
+                 
+                12, 13, 14,
+                12, 14, 15,
+
+                 
+                16, 17, 18,
+                16, 18, 19,
+
+                 
+                20, 21, 22,
+                20, 22, 23
+            };
+
+             
+            uint vertices = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertices);
+            fixed (float* v = &vertexArray[0])
+            {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexArray.Length * sizeof(float)), v, BufferUsageARB.StaticDraw);
+            }
+
+             
+            uint offsetPos = 0;
+            uint offsetNormals = offsetPos + 3 * sizeof(float);
+            uint vertexSize = offsetNormals + 3 * sizeof(float);
+            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, vertexSize, (void*)offsetPos);
+            gl.EnableVertexAttribArray(0);
+            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, true, vertexSize, (void*)offsetNormals);
+            gl.EnableVertexAttribArray(2);
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+
+             
+            uint colors = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, colors);
+            fixed (float* c = &colorArray[0])
+            {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(colorArray.Length * sizeof(float)), c, BufferUsageARB.StaticDraw);
+            }
+            
+             
+            gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
+            gl.EnableVertexAttribArray(1);
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+
+             
+            uint indices = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, indices);
+            fixed (uint* i = &indexArray[0])
+            {
+                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indexArray.Length * sizeof(uint)), i, BufferUsageARB.StaticDraw);
+            }
+
+             
+            gl.BindVertexArray(0);
+
+            return new ModelObjectDescriptor 
+            { 
+                Gl = gl,
+                Vao = vao, 
+                Vertices = vertices, 
+                Colors = colors, 
+                Indices = indices, 
+                IndexArrayLength = indexArray.Length 
+            };
+        }
+
+         
+        public static unsafe ModelObjectDescriptor CreateRectangleWithAngledNormals(GL gl, float width, float height, float depth)
+        {
+            uint vao = gl.GenVertexArray();
+            gl.BindVertexArray(vao);
+
+            float halfWidth = width / 2;
+            float halfHeight = height / 2;
+            float halfDepth = depth / 2;
+
+             
+            float angleInRadians = 10.0f * MathF.PI / 180.0f;
+            
+             
+             
+            float zComponent = MathF.Cos(angleInRadians);
+            float xComponent = MathF.Sin(angleInRadians);
+            
+             
+             
+            float[] vertexArray = {
+                 
+                -halfWidth, -halfHeight, halfDepth, -xComponent, 0, zComponent,
+                halfWidth, -halfHeight, halfDepth, xComponent, 0, zComponent,
+                halfWidth, halfHeight, halfDepth, xComponent, 0, zComponent,
+                -halfWidth, halfHeight, halfDepth, -xComponent, 0, zComponent,
+
+                 
+                halfWidth, -halfHeight, -halfDepth, xComponent, 0, -zComponent,
+                -halfWidth, -halfHeight, -halfDepth, -xComponent, 0, -zComponent,
+                -halfWidth, halfHeight, -halfDepth, -xComponent, 0, -zComponent,
+                halfWidth, halfHeight, -halfDepth, xComponent, 0, -zComponent,
+
+                 
+                -halfWidth, halfHeight, halfDepth, 0, 1, 0,
+                halfWidth, halfHeight, halfDepth, 0, 1, 0,
+                halfWidth, halfHeight, -halfDepth, 0, 1, 0,
+                -halfWidth, halfHeight, -halfDepth, 0, 1, 0,
+
+                 
+                -halfWidth, -halfHeight, -halfDepth, 0, -1, 0,
+                halfWidth, -halfHeight, -halfDepth, 0, -1, 0,
+                halfWidth, -halfHeight, halfDepth, 0, -1, 0,
+                -halfWidth, -halfHeight, halfDepth, 0, -1, 0,
+
+                 
+                halfWidth, -halfHeight, halfDepth, zComponent, 0, -xComponent,
+                halfWidth, -halfHeight, -halfDepth, zComponent, 0, xComponent,
+                halfWidth, halfHeight, -halfDepth, zComponent, 0, xComponent,
+                halfWidth, halfHeight, halfDepth, zComponent, 0, -xComponent,
+
+                 
+                -halfWidth, -halfHeight, -halfDepth, -zComponent, 0, xComponent,
+                -halfWidth, -halfHeight, halfDepth, -zComponent, 0, -xComponent,
+                -halfWidth, halfHeight, halfDepth, -zComponent, 0, -xComponent,
+                -halfWidth, halfHeight, -halfDepth, -zComponent, 0, xComponent
+            };
+
+             
+            float[] colorArray = {
+                 
+                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+
+                 
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+
+                 
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+
+                 
+                1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 1.0f, 1.0f,
+
+                 
+                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 1.0f, 1.0f,
+
+                 
+                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 1.0f, 0.0f, 1.0f
+            };
+
+             
+            uint[] indexArray = {
+                 
+                0, 1, 2,
+                0, 2, 3,
+                
+                 
+                4, 5, 6,
+                4, 6, 7,
+                
+                 
+                8, 9, 10,
+                8, 10, 11,
+                
+                 
+                12, 13, 14,
+                12, 14, 15,
+                
+                 
+                16, 17, 18,
+                16, 18, 19,
+                
+                 
+                20, 21, 22,
+                20, 22, 23
+            };
+
+             
+            uint vertices = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertices);
+            fixed (float* v = &vertexArray[0])
+            {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexArray.Length * sizeof(float)), v, BufferUsageARB.StaticDraw);
+            }
+
+             
+            uint offsetPos = 0;
+            uint offsetNormals = offsetPos + 3 * sizeof(float);
+            uint vertexSize = offsetNormals + 3 * sizeof(float);
+            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, vertexSize, (void*)offsetPos);
+            gl.EnableVertexAttribArray(0);
+            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, true, vertexSize, (void*)offsetNormals);
+            gl.EnableVertexAttribArray(2);
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+
+             
+            uint colors = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, colors);
+            fixed (float* c = &colorArray[0])
+            {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(colorArray.Length * sizeof(float)), c, BufferUsageARB.StaticDraw);
+            }
+            
+             
+            gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
+            gl.EnableVertexAttribArray(1);
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+
+             
+            uint indices = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, indices);
+            fixed (uint* i = &indexArray[0])
+            {
+                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indexArray.Length * sizeof(uint)), i, BufferUsageARB.StaticDraw);
+            }
+
+             
+            gl.BindVertexArray(0);
+
+            return new ModelObjectDescriptor 
+            { 
+                Gl = gl,
+                Vao = vao, 
+                Vertices = vertices, 
+                Colors = colors, 
+                Indices = indices, 
+                IndexArrayLength = indexArray.Length 
+            };
         }
     }
 }
