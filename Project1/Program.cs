@@ -1,4 +1,4 @@
-﻿﻿using Silk.NET.OpenGL;
+﻿using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using System;
 
@@ -116,6 +116,7 @@ namespace Szeminarium1
             {
                 Gl.Clear(ClearBufferMask.ColorBufferBit);
 
+                //just creating and binding the vao
                 uint vao = Gl.GenVertexArray();
                 Gl.BindVertexArray(vao);
 
