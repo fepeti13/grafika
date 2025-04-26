@@ -37,6 +37,9 @@ namespace GrafikaSzeminarium
         private const string AmbientStrengthVariableName = "uAmbientStrength";
         private const string DiffuseStrengthVariableName = "uDiffuseStrength";
         private const string SpecularStrengthVariableName = "uSpecularStrength";
+        private const string SideColorName = "uSideColor";
+        private const string IsCenterName = "uIsCenter";
+
 
 
         private static Vector3 ambientStrength = new Vector3(0.1f);
@@ -221,17 +224,20 @@ namespace GrafikaSzeminarium
             SetUniform3(DiffuseStrengthVariableName, diffuseStrength);
             SetUniform3(SpecularStrengthVariableName, specularStrength);
 
-
             var viewMatrix = Matrix4X4.CreateLookAt(camera.Position, camera.Target, camera.UpVector);
             SetMatrix(viewMatrix, ViewMatrixVariableName);
 
             var projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView<float>((float)(Math.PI / 2), 1024f / 768f, 0.1f, 100f);
             SetMatrix(projectionMatrix, ProjectionMatrixVariableName);
-
+            
+            SetUniform3(SideColorName, sideColor);
+            SetUniform1(IsCenterName, 1.0f); //I need to flag somehow which is the center cube
 
             var modelMatrixCenterCube = Matrix4X4.CreateScale((float)cubeArrangementModel.CenterCubeScale);
             SetModelMatrix(modelMatrixCenterCube);
             DrawModelObject(cube);
+
+            SetUniform1(IsCenterName, 0.0f);
 
             Matrix4X4<float> diamondScale = Matrix4X4.CreateScale(0.25f);
             Matrix4X4<float> rotx = Matrix4X4.CreateRotationX((float)Math.PI / 4f);

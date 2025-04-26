@@ -7,15 +7,24 @@ uniform mat4 uModel;
 uniform mat3 uNormal;
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform vec3 sideColor;
 
 out vec4 outCol;
 out vec3 outNormal;
 out vec3 outWorldPosition;
-        
+
 void main()
 {
-	outCol = vCol;
-    outNormal = uNormal*vNormal;
-    outWorldPosition = vec3(uModel*vec4(vPos.x, vPos.y, vPos.z, 1.0));
-    gl_Position = uProjection*uView*uModel*vec4(vPos.x, vPos.y, vPos.z, 1.0);
+    if (dot(vNormal, vec3(0.0, 1.0, 0.0)) > 0.9)
+    {
+        outCol = vec4(sideColor, 1.0); //side color for this side
+    }
+    else
+    {
+        outCol = vCol; //default for others
+    }
+
+    outNormal = uNormal * vNormal;
+    outWorldPosition = vec3(uModel * vec4(vPos.x, vPos.y, vPos.z, 1.0));
+    gl_Position = uProjection * uView * uModel * vec4(vPos.x, vPos.y, vPos.z, 1.0);
 }
