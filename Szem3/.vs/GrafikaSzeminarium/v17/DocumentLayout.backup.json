@@ -1,0 +1,154 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|d:\\koli\\munka\\bbte\\tantargyak\\grafika (mlm5060)\\kodok\\grafika-mlm5060\\szemi3\\elok\\2025\\hetfo18-ptln\\grafikaszeminarium\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|d:\\koli\\munka\\bbte\\tantargyak\\grafika (mlm5060)\\kodok\\grafika-mlm5060\\szemi3\\elok\\2025\\hetfo18-ptln\\grafikaszeminarium\\shaders\\fragmentshader.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|solutionrelative:shaders\\fragmentshader.frag||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|d:\\koli\\munka\\bbte\\tantargyak\\grafika (mlm5060)\\kodok\\grafika-mlm5060\\szemi3\\elok\\2025\\hetfo18-ptln\\grafikaszeminarium\\cubearrangementmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|solutionrelative:cubearrangementmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|d:\\koli\\munka\\bbte\\tantargyak\\grafika (mlm5060)\\kodok\\grafika-mlm5060\\szemi3\\elok\\2025\\hetfo18-ptln\\grafikaszeminarium\\shaders\\vertexshader.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|solutionrelative:shaders\\vertexshader.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|d:\\koli\\munka\\bbte\\tantargyak\\grafika (mlm5060)\\kodok\\grafika-mlm5060\\szemi3\\elok\\2025\\hetfo18-ptln\\grafikaszeminarium\\modelobjectdescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|solutionrelative:modelobjectdescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|d:\\koli\\munka\\bbte\\tantargyak\\grafika (mlm5060)\\kodok\\grafika-mlm5060\\szemi3\\elok\\2025\\hetfo18-ptln\\grafikaszeminarium\\cameradescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C4A3462-5159-4CE7-AED3-CD6B7C1F8DF3}|GrafikaSzeminarium.csproj|solutionrelative:cameradescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 207,
+          "SelectedChildIndex": 12,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{191acb7e-105f-38b7-a841-3c0f4ea5ede5}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{01321f1c-6c9e-3b5b-9c0f-66d2a373c254}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{f6c90d9a-1aa8-32e5-baac-467b7262213c}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "VertexShader.vert",
+              "DocumentMoniker": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\Shaders\\VertexShader.vert",
+              "RelativeDocumentMoniker": "Shaders\\VertexShader.vert",
+              "ToolTip": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\Shaders\\VertexShader.vert",
+              "RelativeToolTip": "Shaders\\VertexShader.vert",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-03-24T16:22:03.528Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CubeArrangementModel.cs",
+              "DocumentMoniker": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\CubeArrangementModel.cs",
+              "RelativeDocumentMoniker": "CubeArrangementModel.cs",
+              "ToolTip": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\CubeArrangementModel.cs",
+              "RelativeToolTip": "CubeArrangementModel.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAADAAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-10T17:22:17.697Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CameraDescriptor.cs",
+              "DocumentMoniker": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\CameraDescriptor.cs",
+              "RelativeDocumentMoniker": "CameraDescriptor.cs",
+              "ToolTip": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\CameraDescriptor.cs",
+              "RelativeToolTip": "CameraDescriptor.cs",
+              "ViewState": "AgIAAD8AAAAAAAAAAABBwEoAAABGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-10T17:10:29.915Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ModelObjectDescriptor.cs",
+              "DocumentMoniker": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\ModelObjectDescriptor.cs",
+              "RelativeDocumentMoniker": "ModelObjectDescriptor.cs",
+              "ToolTip": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\ModelObjectDescriptor.cs",
+              "RelativeToolTip": "ModelObjectDescriptor.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAAAEkAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-10T16:45:14.451Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAALMAAAAAAAAAAAAAALUAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-24T16:25:28.976Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FragmentShader.frag",
+              "DocumentMoniker": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\Shaders\\FragmentShader.frag",
+              "RelativeDocumentMoniker": "Shaders\\FragmentShader.frag",
+              "ToolTip": "D:\\Koli\\Munka\\BBTE\\Tantargyak\\Grafika (MLM5060)\\Kodok\\Grafika-MLM5060\\Szemi3\\Elok\\2025\\Hetfo18-ptln\\GrafikaSzeminarium\\Shaders\\FragmentShader.frag",
+              "RelativeToolTip": "Shaders\\FragmentShader.frag",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-03-24T16:22:22.913Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
