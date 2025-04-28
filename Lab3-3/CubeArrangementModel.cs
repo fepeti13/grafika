@@ -1,15 +1,18 @@
-﻿using Silk.NET.Maths;
-using System.Numerics;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Silk.NET.Maths;
 
-namespace Lab2
+namespace GrafikaSzeminarium
 {
     internal class CubeArrangementModel
     {
         /// <summary>
         /// Gets or sets wheather the animation should run or it should be frozen.
         /// </summary>
-        public bool AnimationEnabeld { get; set; } = false;
+        public bool AnimationEnabled { get; set; } = false;
 
         /// <summary>
         /// The time of the simulation. It helps to calculate time dependent values.
@@ -24,15 +27,15 @@ namespace Lab2
         /// <summary>
         /// The angle with which the diamond cube is rotated around the diagonal from bottom right front to top left back.
         /// </summary>
-        public double DiamondCubeAngleOwnRevolution { get; private set; } = 0;
+        public double DiamondCubeLocalAngle { get; private set; } = 0;
 
         /// <summary>
-        /// The angle with which the diamond cube is rotated around the diagonal from bottom right front to top left back.
+        /// The angle with which the diamond cube is rotated around the global Y axes.
         /// </summary>
-        public double DiamondCubeAngleRevolutionOnGlobalY { get; private set; } = 0;
+        public double DiamondCubeGlobalYAngle { get; private set; } = 0;
 
-        private readonly List<Vector3D<float>> positions = new();
-        private readonly List<bool> inSlice = new();
+        private List<Vector3D<float>> cubePositions = new();
+        private List<bool> cubeInRotatingSlice = new();
         private int currentSlice = 1;
         private int sliceAxis = 1;
         private bool isRotating = false;
@@ -40,26 +43,35 @@ namespace Lab2
         private float targetRotationAngle = 0.0f;
         private float rotationSpeed = 3.0f;
 
-        public CubeArrangementModel()
+        public void InitializeCubePositions()
         {
+            cubePositions.Clear();
+            cubeInRotatingSlice.Clear();
             float spacing = 1.1f;
+
             for (int x = -1; x <= 1; x++)
             for (int y = -1; y <= 1; y++)
             for (int z = -1; z <= 1; z++)
             {
-                positions.Add(new Vector3D<float>(x * spacing, y * spacing, z * spacing));
-                inSlice.Add(false);
+                cubePositions.Add(new Vector3D<float>(x * spacing, y * spacing, z * spacing));
+                cubeInRotatingSlice.Add(false);
             }
         }
 
-        public IReadOnlyList<Vector3D<float>> Positions => positions;
-        public IReadOnlyList<bool> InSlice => inSlice;
-        public int CurrentSlice => currentSlice;
-        public int SliceAxis => sliceAxis;
-        public bool IsRotating => isRotating;
-        public float CurrentRotationAngle => currentRotationAngle;
-        public float TargetRotationAngle => targetRotationAngle;
-        public float RotationSpeed => rotationSpeed;
+        public List<Vector3D<float>> GetCubePositions() => cubePositions;
+        public List<bool> GetCubeInRotatingSlice() => cubeInRotatingSlice;
+        public int GetCurrentSlice() => currentSlice;
+        public int GetSliceAxis() => sliceAxis;
+        public bool IsRotating() => isRotating;
+        public float GetCurrentRotationAngle() => currentRotationAngle;
+        public float GetTargetRotationAngle() => targetRotationAngle;
+
+        public void SetSliceAxis(int axis)
+        {
+            sliceAxis = axis;
+            currentSlice = 1;
+            UpdateSliceMembers();
+        }
 
         public void SetCurrentSlice(int slice)
         {
@@ -67,102 +79,124 @@ namespace Lab2
             UpdateSliceMembers();
         }
 
-        public void SetSliceAxis(int axis)
+        public void StartRotation(bool clockwise)
         {
-            sliceAxis = axis;
-            UpdateSliceMembers();
+            if (!isRotating)
+            {
+                isRotating = true;
+                currentRotationAngle = 0.0f;
+                targetRotationAngle = clockwise ? (float)Math.PI / 2.0f : -(float)Math.PI / 2.0f;
+                UpdateSliceMembers();
+            }
         }
 
-        public void StartRotation(float angle)
-        {
-            targetRotationAngle = angle;
-            isRotating = true;
-        }
-
-        public void Update(float deltaTime)
+        public void UpdateRotation(float deltaTime)
         {
             if (!isRotating) return;
 
-            float delta = rotationSpeed * deltaTime;
-            if (Math.Abs(targetRotationAngle - currentRotationAngle) <= delta)
+            float rotationDelta = rotationSpeed * deltaTime;
+            
+            if (targetRotationAngle > 0)
             {
-                currentRotationAngle = targetRotationAngle;
-                isRotating = false;
+                currentRotationAngle += rotationDelta;
+                if (currentRotationAngle >= targetRotationAngle)
+                {
+                    currentRotationAngle = targetRotationAngle;
+                    FinishRotation();
+                }
             }
             else
             {
-                currentRotationAngle += delta * Math.Sign(targetRotationAngle - currentRotationAngle);
-            }
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                if (inSlice[i])
+                currentRotationAngle -= rotationDelta;
+                if (currentRotationAngle <= targetRotationAngle)
                 {
-                    Vector3D<float> position = positions[i];
-                    Vector3D<float> rotatedPosition = RotatePointAroundAxis(
-                        position,
-                        Vector3D<float>.Zero,
-                        GetRotationAxis(),
-                        currentRotationAngle);
-                    positions[i] = rotatedPosition;
+                    currentRotationAngle = targetRotationAngle;
+                    FinishRotation();
                 }
             }
         }
 
         private void UpdateSliceMembers()
         {
-            inSlice.Clear();
-            for (int i = 0; i < positions.Count; i++)
+            cubeInRotatingSlice = new List<bool>();
+            
+            for (int i = 0; i < cubePositions.Count; i++)
             {
-                Vector3D<float> position = positions[i];
-                bool inCurrentSlice = false;
+                Vector3D<float> position = cubePositions[i];
+                bool inSlice = false;
                 
                 switch (sliceAxis)
                 {
-                    case 0:
-                        inCurrentSlice = Math.Round(position.X) == currentSlice;
+                    case 0: 
+                        inSlice = Math.Round(position.X) == currentSlice;
                         break;
-                    case 1:
-                        inCurrentSlice = Math.Round(position.Y) == currentSlice;
+                    case 1: 
+                        inSlice = Math.Round(position.Y) == currentSlice;
                         break;
-                    case 2:
-                        inCurrentSlice = Math.Round(position.Z) == currentSlice;
+                    case 2: 
+                        inSlice = Math.Round(position.Z) == currentSlice;
                         break;
                 }
                 
-                inSlice.Add(inCurrentSlice);
+                cubeInRotatingSlice.Add(inSlice);
             }
+        }
+
+        private void FinishRotation()
+        {
+            for (int i = 0; i < cubePositions.Count; i++)
+            {
+                if (cubeInRotatingSlice[i])
+                {
+                    Vector3D<float> position = cubePositions[i];
+                    Vector3D<float> rotatedPosition = RotatePointAroundAxis(
+                        position, 
+                        Vector3D<float>.Zero, 
+                        GetRotationAxis(), 
+                        targetRotationAngle);
+                    
+                    rotatedPosition.X = (float)Math.Round(rotatedPosition.X * 2) / 2;
+                    rotatedPosition.Y = (float)Math.Round(rotatedPosition.Y * 2) / 2;
+                    rotatedPosition.Z = (float)Math.Round(rotatedPosition.Z * 2) / 2;
+                    
+                    cubePositions[i] = rotatedPosition;
+                }
+            }
+
+            isRotating = false;
+            currentRotationAngle = 0;
         }
 
         private Vector3D<float> GetRotationAxis()
         {
-            return sliceAxis switch
+            switch (sliceAxis)
             {
-                0 => Vector3D<float>.UnitX,
-                1 => Vector3D<float>.UnitY,
-                2 => Vector3D<float>.UnitZ,
-                _ => Vector3D<float>.UnitY
-            };
+                case 0: return new Vector3D<float>(1, 0, 0); 
+                case 1: return new Vector3D<float>(0, 1, 0); 
+                case 2: return new Vector3D<float>(0, 0, 1); 
+                default: return new Vector3D<float>(0, 1, 0); 
+            }
         }
 
-        private static Vector3D<float> RotatePointAroundAxis(
-            Vector3D<float> point,
-            Vector3D<float> pivot,
-            Vector3D<float> axis,
+        private Vector3D<float> RotatePointAroundAxis(
+            Vector3D<float> point, 
+            Vector3D<float> pivot, 
+            Vector3D<float> axis, 
             float angle)
         {
             Vector3D<float> translated = point - pivot;
             
             Matrix4X4<float> rotationMatrix;
+            
             if (axis.X == 1)
                 rotationMatrix = Matrix4X4.CreateRotationX(angle);
             else if (axis.Y == 1)
                 rotationMatrix = Matrix4X4.CreateRotationY(angle);
-            else
+            else 
                 rotationMatrix = Matrix4X4.CreateRotationZ(angle);
             
             Vector4D<float> rotated = Vector4D.Transform(
-                new Vector4D<float>(translated.X, translated.Y, translated.Z, 1),
+                new Vector4D<float>(translated.X, translated.Y, translated.Z, 1), 
                 rotationMatrix);
             
             return new Vector3D<float>(rotated.X, rotated.Y, rotated.Z) + pivot;
@@ -171,7 +205,7 @@ namespace Lab2
         internal void AdvanceTime(double deltaTime)
         {
             // we do not advance the simulation when animation is stopped
-            if (!AnimationEnabeld)
+            if (!AnimationEnabled)
                 return;
 
             // set a simulation time
@@ -180,9 +214,10 @@ namespace Lab2
             // lets produce an oscillating scale in time
             CenterCubeScale = 1 + 0.2 * Math.Sin(1.5 * Time);
 
-            DiamondCubeAngleOwnRevolution = Time * 10;
+            // the rotation angle is time x angular velocity;
+            DiamondCubeLocalAngle = Time * 10;
 
-            DiamondCubeAngleRevolutionOnGlobalY = -Time;
+            DiamondCubeGlobalYAngle = -Time;
         }
     }
 }

@@ -1,110 +1,216 @@
-﻿using Silk.NET.OpenGL;
-using System.Numerics;
+using Silk.NET.OpenGL;
+using System;
+using System.Collections.Generic;
 
-namespace Lab2
+namespace GrafikaSzeminarium
 {
-    public class GlCube
+    internal class GlCube
     {
-        private readonly GL _gl;
-        private readonly uint _vao;
-        private readonly uint _vbo;
-        private readonly uint _ebo;
-        private readonly int _indexArrayLength;
+        public uint Vao { get; }
+        public uint Vertices { get; }
+        public uint Colors { get; }
+        public uint Normals { get; }
+        public uint Indices { get; }
+        public uint IndexArrayLength { get; }
 
-        public uint Vao => _vao;
-        public int IndexArrayLength => _indexArrayLength;
+        private GL Gl;
 
-        private GlCube(GL gl, uint vao, uint vbo, uint ebo, int indexArrayLength)
+        private GlCube(uint vao, uint vertices, uint colors, uint normals, uint indices, uint indexArrayLength, GL gl)
         {
-            _gl = gl;
-            _vao = vao;
-            _vbo = vbo;
-            _ebo = ebo;
-            _indexArrayLength = indexArrayLength;
+            this.Vao = vao;
+            this.Vertices = vertices;
+            this.Colors = colors;
+            this.Normals = normals;
+            this.Indices = indices;
+            this.IndexArrayLength = indexArrayLength;
+            this.Gl = gl;
         }
 
-        public static GlCube CreateCubeWithFaceColors(GL gl, float[] face1, float[] face2, float[] face3, float[] face4, float[] face5, float[] face6)
+        public static unsafe GlCube CreateCubeWithFaceColors(GL Gl, float[] face1Color, float[] face2Color, float[] face3Color, float[] face4Color, float[] face5Color, float[] face6Color)
         {
-            float[] vertices = new float[]
-            {
-                // Front face (red)
-                -0.5f, -0.5f,  0.5f, face1[0], face1[1], face1[2], face1[3],  0.0f,  0.0f,  1.0f,
-                 0.5f, -0.5f,  0.5f, face1[0], face1[1], face1[2], face1[3],  0.0f,  0.0f,  1.0f,
-                 0.5f,  0.5f,  0.5f, face1[0], face1[1], face1[2], face1[3],  0.0f,  0.0f,  1.0f,
-                -0.5f,  0.5f,  0.5f, face1[0], face1[1], face1[2], face1[3],  0.0f,  0.0f,  1.0f,
+            uint vao = Gl.GenVertexArray();
+            Gl.BindVertexArray(vao);
 
-                // Back face (orange)
-                -0.5f, -0.5f, -0.5f, face2[0], face2[1], face2[2], face2[3],  0.0f,  0.0f, -1.0f,
-                 0.5f, -0.5f, -0.5f, face2[0], face2[1], face2[2], face2[3],  0.0f,  0.0f, -1.0f,
-                 0.5f,  0.5f, -0.5f, face2[0], face2[1], face2[2], face2[3],  0.0f,  0.0f, -1.0f,
-                -0.5f,  0.5f, -0.5f, face2[0], face2[1], face2[2], face2[3],  0.0f,  0.0f, -1.0f,
+            // counter clockwise is front facing
+            float[] vertexArray = new float[] {
+                // Top face (Y+)
+                -0.5f, 0.5f, 0.5f,
+                0.5f, 0.5f, 0.5f,
+                0.5f, 0.5f, -0.5f,
+                -0.5f, 0.5f, -0.5f,
 
-                // Left face (blue)
-                -0.5f, -0.5f, -0.5f, face3[0], face3[1], face3[2], face3[3], -1.0f,  0.0f,  0.0f,
-                -0.5f, -0.5f,  0.5f, face3[0], face3[1], face3[2], face3[3], -1.0f,  0.0f,  0.0f,
-                -0.5f,  0.5f,  0.5f, face3[0], face3[1], face3[2], face3[3], -1.0f,  0.0f,  0.0f,
-                -0.5f,  0.5f, -0.5f, face3[0], face3[1], face3[2], face3[3], -1.0f,  0.0f,  0.0f,
+                // Front face (Z+)
+                -0.5f, 0.5f, 0.5f,
+                -0.5f, -0.5f, 0.5f,
+                0.5f, -0.5f, 0.5f,
+                0.5f, 0.5f, 0.5f,
 
-                // Right face (green)
-                 0.5f, -0.5f, -0.5f, face4[0], face4[1], face4[2], face4[3],  1.0f,  0.0f,  0.0f,
-                 0.5f, -0.5f,  0.5f, face4[0], face4[1], face4[2], face4[3],  1.0f,  0.0f,  0.0f,
-                 0.5f,  0.5f,  0.5f, face4[0], face4[1], face4[2], face4[3],  1.0f,  0.0f,  0.0f,
-                 0.5f,  0.5f, -0.5f, face4[0], face4[1], face4[2], face4[3],  1.0f,  0.0f,  0.0f,
+                // Left face (X-)
+                -0.5f, 0.5f, 0.5f,
+                -0.5f, 0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
+                -0.5f, -0.5f, 0.5f,
 
-                // Top face (white)
-                -0.5f,  0.5f,  0.5f, face5[0], face5[1], face5[2], face5[3],  0.0f,  1.0f,  0.0f,
-                 0.5f,  0.5f,  0.5f, face5[0], face5[1], face5[2], face5[3],  0.0f,  1.0f,  0.0f,
-                 0.5f,  0.5f, -0.5f, face5[0], face5[1], face5[2], face5[3],  0.0f,  1.0f,  0.0f,
-                -0.5f,  0.5f, -0.5f, face5[0], face5[1], face5[2], face5[3],  0.0f,  1.0f,  0.0f,
+                // Bottom face (Y-)
+                -0.5f, -0.5f, 0.5f,
+                0.5f, -0.5f, 0.5f,
+                0.5f, -0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
 
-                // Bottom face (yellow)
-                -0.5f, -0.5f,  0.5f, face6[0], face6[1], face6[2], face6[3],  0.0f, -1.0f,  0.0f,
-                 0.5f, -0.5f,  0.5f, face6[0], face6[1], face6[2], face6[3],  0.0f, -1.0f,  0.0f,
-                 0.5f, -0.5f, -0.5f, face6[0], face6[1], face6[2], face6[3],  0.0f, -1.0f,  0.0f,
-                -0.5f, -0.5f, -0.5f, face6[0], face6[1], face6[2], face6[3],  0.0f, -1.0f,  0.0f,
+                // Back face (Z-)
+                0.5f, 0.5f, -0.5f,
+                -0.5f, 0.5f, -0.5f,
+                -0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+
+                // Right face (X+)
+                0.5f, 0.5f, 0.5f,
+                0.5f, 0.5f, -0.5f,
+                0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f, 0.5f,
             };
 
-            uint[] indices = new uint[]
-            {
-                0, 1, 2, 2, 3, 0,    // Front
-                4, 5, 6, 6, 7, 4,    // Back
-                8, 9, 10, 10, 11, 8, // Left
-                12, 13, 14, 14, 15, 12, // Right
-                16, 17, 18, 18, 19, 16, // Top
-                20, 21, 22, 22, 23, 20  // Bottom
+            // Normal vectors for each face
+            float[] normalArray = new float[] {
+                // Top face normals (Y+)
+                0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f,
+
+                // Front face normals (Z+)
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f,
+
+                // Left face normals (X-)
+                -1.0f, 0.0f, 0.0f,
+                -1.0f, 0.0f, 0.0f,
+                -1.0f, 0.0f, 0.0f,
+                -1.0f, 0.0f, 0.0f,
+
+                // Bottom face normals (Y-)
+                0.0f, -1.0f, 0.0f,
+                0.0f, -1.0f, 0.0f,
+                0.0f, -1.0f, 0.0f,
+                0.0f, -1.0f, 0.0f,
+
+                // Back face normals (Z-)
+                0.0f, 0.0f, -1.0f,
+                0.0f, 0.0f, -1.0f,
+                0.0f, 0.0f, -1.0f,
+                0.0f, 0.0f, -1.0f,
+
+                // Right face normals (X+)
+                1.0f, 0.0f, 0.0f,
+                1.0f, 0.0f, 0.0f,
+                1.0f, 0.0f, 0.0f,
+                1.0f, 0.0f, 0.0f,
             };
 
-            uint vao = gl.GenVertexArray();
-            gl.BindVertexArray(vao);
+            List<float> colorsList = new List<float>();
+            colorsList.AddRange(face1Color);
+            colorsList.AddRange(face1Color);
+            colorsList.AddRange(face1Color);
+            colorsList.AddRange(face1Color);
 
-            uint vbo = gl.GenBuffer();
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
-            gl.BufferData(BufferTargetARB.ArrayBuffer, vertices, BufferUsageARB.StaticDraw);
+            colorsList.AddRange(face2Color);
+            colorsList.AddRange(face2Color);
+            colorsList.AddRange(face2Color);
+            colorsList.AddRange(face2Color);
 
-            uint ebo = gl.GenBuffer();
-            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer, indices, BufferUsageARB.StaticDraw);
+            colorsList.AddRange(face3Color);
+            colorsList.AddRange(face3Color);
+            colorsList.AddRange(face3Color);
+            colorsList.AddRange(face3Color);
 
-            // Position attribute
-            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 10 * sizeof(float), (void*)0);
-            gl.EnableVertexAttribArray(0);
+            colorsList.AddRange(face4Color);
+            colorsList.AddRange(face4Color);
+            colorsList.AddRange(face4Color);
+            colorsList.AddRange(face4Color);
 
-            // Color attribute
-            gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 10 * sizeof(float), (void*)(3 * sizeof(float)));
-            gl.EnableVertexAttribArray(1);
+            colorsList.AddRange(face5Color);
+            colorsList.AddRange(face5Color);
+            colorsList.AddRange(face5Color);
+            colorsList.AddRange(face5Color);
 
-            // Normal attribute
-            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 10 * sizeof(float), (void*)(7 * sizeof(float)));
-            gl.EnableVertexAttribArray(2);
+            colorsList.AddRange(face6Color);
+            colorsList.AddRange(face6Color);
+            colorsList.AddRange(face6Color);
+            colorsList.AddRange(face6Color);
 
-            return new GlCube(gl, vao, vbo, ebo, indices.Length);
+            float[] colorArray = colorsList.ToArray();
+
+            uint[] indexArray = new uint[] {
+                0, 1, 2,
+                0, 2, 3,
+
+                4, 5, 6,
+                4, 6, 7,
+
+                8, 9, 10,
+                10, 11, 8,
+
+                12, 14, 13,
+                12, 15, 14,
+
+                17, 16, 19,
+                17, 19, 18,
+
+                20, 22, 21,
+                20, 23, 22
+            };
+
+            uint vertices = Gl.GenBuffer();
+            Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
+            fixed (float* ptr = vertexArray)
+            {
+                Gl.BufferData(GLEnum.ArrayBuffer, (nuint)(vertexArray.Length * sizeof(float)), ptr, GLEnum.StaticDraw);
+            }
+            Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, null);
+            Gl.EnableVertexAttribArray(0);
+
+            uint colors = Gl.GenBuffer();
+            Gl.BindBuffer(GLEnum.ArrayBuffer, colors);
+            fixed (float* ptr = colorArray)
+            {
+                Gl.BufferData(GLEnum.ArrayBuffer, (nuint)(colorArray.Length * sizeof(float)), ptr, GLEnum.StaticDraw);
+            }
+            Gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
+            Gl.EnableVertexAttribArray(1);
+
+            uint normals = Gl.GenBuffer();
+            Gl.BindBuffer(GLEnum.ArrayBuffer, normals);
+            fixed (float* ptr = normalArray)
+            {
+                Gl.BufferData(GLEnum.ArrayBuffer, (nuint)(normalArray.Length * sizeof(float)), ptr, GLEnum.StaticDraw);
+            }
+            Gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, true, 0, null);
+            Gl.EnableVertexAttribArray(2);
+
+            uint indices = Gl.GenBuffer();
+            Gl.BindBuffer(GLEnum.ElementArrayBuffer, indices);
+            fixed (uint* ptr = indexArray)
+            {
+                Gl.BufferData(GLEnum.ElementArrayBuffer, (nuint)(indexArray.Length * sizeof(uint)), ptr, GLEnum.StaticDraw);
+            }
+
+            // release array buffer
+            Gl.BindBuffer(GLEnum.ArrayBuffer, 0);
+            uint indexArrayLength = (uint)indexArray.Length;
+
+            return new GlCube(vao, vertices, colors, normals, indices, indexArrayLength, Gl);
         }
 
-        public void ReleaseGlCube()
+        internal void ReleaseGlCube()
         {
-            _gl.DeleteVertexArray(_vao);
-            _gl.DeleteBuffer(_vbo);
-            _gl.DeleteBuffer(_ebo);
+            // always unbound the vertex buffer first, so no halfway results are displayed by accident
+            Gl.DeleteBuffer(Vertices);
+            Gl.DeleteBuffer(Colors);
+            Gl.DeleteBuffer(Normals);
+            Gl.DeleteBuffer(Indices);
+            Gl.DeleteVertexArray(Vao);
         }
     }
 }

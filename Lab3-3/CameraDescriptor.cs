@@ -1,19 +1,28 @@
 ﻿using Silk.NET.Maths;
-using System.Numerics;
 
-namespace Lab2
+namespace GrafikaSzeminarium
 {
-    public class CameraDescriptor
+    internal class CameraDescriptor
     {
-        public Vector3D<float> Position { get; private set; }
-        public Vector3D<float> Target { get; private set; }
-        private float zyAngle = 0.0f;
-        private float zxAngle = 0.0f;
-        private const float Distance = 5.0f;
+        private double DistanceToOrigin = 7; // Kezdeti távolság az origótól
+        
+        private double AngleToZYPlane = 0;
+        
+        private double AngleToZXPlane = 0;
+        
+        private const double DistanceScaleFactor = 1.1;
+        
+        private const double AngleChangeStepSize = Math.PI / 180 * 5;
 
-        public CameraDescriptor()
+        /// <summary>
+        /// Gets the position of the camera.
+        /// </summary>
+        public Vector3D<float> Position
         {
-            UpdatePosition();
+            get
+            {
+                return GetPointFromAngles(DistanceToOrigin, AngleToZYPlane, AngleToZXPlane);
+            }
         }
 
         /// <summary>
@@ -23,63 +32,58 @@ namespace Lab2
         {
             get
             {
-                return Vector3D<float>.Normalize(GetPointFromAngles(Distance, zyAngle, zxAngle + Math.PI / 2));
+                var up = GetPointFromAngles(DistanceToOrigin, AngleToZYPlane, AngleToZXPlane + Math.PI / 2);
+                var length = Math.Sqrt(up.X * up.X + up.Y * up.Y + up.Z * up.Z);
+                return new Vector3D<float>(
+                    (float)(up.X / length),
+                    (float)(up.Y / length),
+                    (float)(up.Z / length)
+                );
             }
         }
 
-        public void IncreaseDistance()
-        {
-            Distance += 0.1f;
-            UpdatePosition();
-        }
-
-        public void DecreaseDistance()
-        {
-            Distance = Math.Max(0.1f, Distance - 0.1f);
-            UpdatePosition();
-        }
-
-        public void IncreaseZYAngle()
-        {
-            zyAngle += 0.1f;
-            UpdatePosition();
-        }
-
-        public void DecreaseZYAngle()
-        {
-            zyAngle -= 0.1f;
-            UpdatePosition();
-        }
+        /// <summary>
+        /// Gets the target point of the camera view.
+        /// </summary>
+        public Vector3D<float> Target => Vector3D<float>.Zero;
 
         public void IncreaseZXAngle()
         {
-            zxAngle = Math.Min(zxAngle + 0.1f, Math.PI / 2 - 0.1f);
-            UpdatePosition();
+            AngleToZXPlane += AngleChangeStepSize;
         }
 
         public void DecreaseZXAngle()
         {
-            zxAngle = Math.Max(zxAngle - 0.1f, -Math.PI / 2 + 0.1f);
-            UpdatePosition();
+            AngleToZXPlane -= AngleChangeStepSize;
         }
 
-        private void UpdatePosition()
+        public void IncreaseZYAngle()
         {
-            float x = Distance * (float)Math.Sin(zyAngle) * (float)Math.Cos(zxAngle);
-            float y = Distance * (float)Math.Sin(zxAngle);
-            float z = Distance * (float)Math.Cos(zyAngle) * (float)Math.Cos(zxAngle);
-
-            Position = new Vector3D<float>(x, y, z);
-            Target = Vector3D<float>.Zero;
+            AngleToZYPlane += AngleChangeStepSize;
         }
 
-        private static Vector3D<float> GetPointFromAngles(float distance, float angleToMinZYPlane, float angleToMinZXPlane)
+        public void DecreaseZYAngle()
         {
-            var x = distance * (float)Math.Cos(angleToMinZXPlane) * (float)Math.Sin(angleToMinZYPlane);
-            var z = distance * (float)Math.Cos(angleToMinZXPlane) * (float)Math.Cos(angleToMinZYPlane);
-            var y = distance * (float)Math.Sin(angleToMinZXPlane);
+            AngleToZYPlane -= AngleChangeStepSize;
+        }
 
-            return new Vector3D<float>(x, y, z);
+        public void IncreaseDistance()
+        {
+            DistanceToOrigin = DistanceToOrigin * DistanceScaleFactor;
+        }
+
+        public void DecreaseDistance()
+        {
+            DistanceToOrigin = DistanceToOrigin / DistanceScaleFactor;
+        }
+
+        private static Vector3D<float> GetPointFromAngles(double distanceToOrigin, double angleToMinZYPlane, double angleToMinZXPlane)
+        {
+            var x = distanceToOrigin * Math.Cos(angleToMinZXPlane) * Math.Sin(angleToMinZYPlane);
+            var z = distanceToOrigin * Math.Cos(angleToMinZXPlane) * Math.Cos(angleToMinZYPlane);
+            var y = distanceToOrigin * Math.Sin(angleToMinZXPlane);
+            
+            return new Vector3D<float>((float)x, (float)y, (float)z);
         }
     }
 }
