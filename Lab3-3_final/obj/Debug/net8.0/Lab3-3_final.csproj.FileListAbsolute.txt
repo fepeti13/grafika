@@ -1,0 +1,6 @@
+/home/fepeti13/Desktop/University/II/II/grafika/Lab3-3_final/obj/Debug/net8.0/Lab3-3_final.csproj.AssemblyReference.cache
+/home/fepeti13/Desktop/University/II/II/grafika/Lab3-3_final/obj/Debug/net8.0/Lab3-3_final.GeneratedMSBuildEditorConfig.editorconfig
+/home/fepeti13/Desktop/University/II/II/grafika/Lab3-3_final/obj/Debug/net8.0/Lab3-3_final.AssemblyInfoInputs.cache
+/home/fepeti13/Desktop/University/II/II/grafika/Lab3-3_final/obj/Debug/net8.0/Lab3-3_final.AssemblyInfo.cs
+/home/fepeti13/Desktop/University/II/II/grafika/Lab3-3_final/obj/Debug/net8.0/Lab3-3_final.csproj.CoreCompileInputs.cache
+/home/fepeti13/Desktop/University/II/II/grafika/Lab3-3_final/obj/Debug/net8.0/Lab3-3_final.sourcelink.json
