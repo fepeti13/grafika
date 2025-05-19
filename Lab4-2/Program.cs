@@ -1,4 +1,5 @@
-﻿﻿using ImGuiNET;
+﻿﻿using System.Xml;
+using ImGuiNET;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -21,8 +22,10 @@ namespace Szeminarium1_24_02_17_2
         private static GlObject table;
         private static GlCube glCubeRotating;
         private static GlObject airboatModel;
+        private static GlObject colladaModel;  
 
         private static float Shininess = 50;
+        private static float ColladaModelRotation = 0.0f;  
 
         private const string ModelMatrixVariableName = "uModel";
         private const string NormalMatrixVariableName = "uNormal";
@@ -92,8 +95,8 @@ namespace Szeminarium1_24_02_17_2
         static void Main(string[] args)
         {
             var options = WindowOptions.Default;
-            options.Title = "2 szeminárium";
-            options.Size = new Vector2D<int>(500, 500);
+            options.Title = "COLLADA Model Viewer";
+            options.Size = new Vector2D<int>(800, 600);
             options.PreferredDepthBufferBits = 24;
 
             window = Window.Create(options);
@@ -158,6 +161,8 @@ namespace Szeminarium1_24_02_17_2
                 case Key.U: cameraDescriptor.IncreaseZXAngle(); break;
                 case Key.D: cameraDescriptor.DecreaseZXAngle(); break;
                 case Key.Space: cubeArrangementModel.AnimationEnabeld = !cubeArrangementModel.AnimationEnabeld; break;
+                case Key.R: ColladaModelRotation += 0.1f; break;  
+                case Key.L: ColladaModelRotation -= 0.1f; break;  
             }
         }
 
@@ -165,19 +170,155 @@ namespace Szeminarium1_24_02_17_2
         {
             cubeArrangementModel.AdvanceTime(deltaTime);
             controller.Update((float)deltaTime);
+            
+             
+            if (cubeArrangementModel.AnimationEnabeld)
+            {
+                ColladaModelRotation += (float)(deltaTime * 0.5);
+            }
         }
 
         private static unsafe void SetUpObjects()
         {
             float[] face1Color = [1f, 0f, 0f, 1f];
-            float[] tableColor = [0.94f, 1f, 1f, 1f]; // Azure
-            float[] airboatColor = [0.7f, 0.7f, 1f, 1f]; // világoskék
+            float[] tableColor = [0.94f, 1f, 1f, 1f];  
+            float[] airboatColor = [0.7f, 0.7f, 1f, 1f];  
+            float[] colladaColor = [0.2f, 0.8f, 0.2f, 1f];  
+
+             
+            string colladaFilePath = "cube.dae";
+            if (!File.Exists(colladaFilePath))
+            {
+                SaveColladaSampleFile(colladaFilePath);
+            }
+
+             
+            string complexColladaFilePath = "complex_model.dae";
+            string colladaPathToUse = File.Exists(complexColladaFilePath) ? complexColladaFilePath : colladaFilePath;
 
             teapot = ObjResourceReader.CreateTeapotWithColor(Gl, face1Color);
             table = GlCube.CreateSquare(Gl, tableColor);
             glCubeRotating = GlCube.CreateCubeWithFaceColors(Gl, face1Color, face1Color, face1Color, face1Color, face1Color, face1Color);
-            airboatModel = ObjResourceReader.CreateFromObjFile(Gl, "airboat.obj", airboatColor);
+            
+            try
+            {
+                airboatModel = ObjResourceReader.CreateFromObjFile(Gl, "airboat.obj", airboatColor);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading airboat model: {ex.Message}");
+                 
+                airboatModel = GlCube.CreateCubeWithFaceColors(Gl, airboatColor, airboatColor, airboatColor, airboatColor, airboatColor, airboatColor);
+            }
+            
+             
+            try
+            {
+                colladaModel = ColladaResourceReader.CreateFromColladaFile(Gl, colladaPathToUse, colladaColor);
+                Console.WriteLine($"Successfully loaded COLLADA model from: {colladaPathToUse}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading COLLADA model: {ex.Message}");
+                 
+                colladaModel = GlCube.CreateCubeWithFaceColors(Gl, colladaColor, colladaColor, colladaColor, colladaColor, colladaColor, colladaColor);
+            }
         }
+
+        private static void SaveColladaSampleFile(string filePath)
+        {
+             
+            string colladaContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<COLLADA xmlns=""http://www.collada.org/2005/11/COLLADASchema"" version=""1.4.1"">
+    <asset>
+        <contributor>
+            <authoring_tool>SceneKit Collada Exporter v1.0</authoring_tool>
+        </contributor>
+        <created>2018-10-25T16:29:03Z</created>
+        <modified>2018-10-25T16:29:03Z</modified>
+        <unit meter=""1.000000""/>
+        <up_axis>Y_UP</up_axis>
+    </asset>
+    <library_materials>
+        <material id=""Blue"" name=""Blue"">
+            <instance_effect url=""#effect_Blue""/>
+        </material>
+    </library_materials>
+    <library_effects>
+        <effect id=""effect_Blue"">
+            <profile_COMMON>
+                <technique sid=""common"">
+                    <phong>
+                        <ambient>
+                            <color>0 0 0 1</color>
+                        </ambient>
+                        <diffuse>
+                            <color>0.137255 0.403922 0.870588 1</color>
+                        </diffuse>
+                        <specular>
+                            <color>0.5 0.5 0.5 1</color>
+                        </specular>
+                        <shininess>
+                            <float>16</float>
+                        </shininess>
+                        <transparent opaque=""A_ONE"">
+                            <color>0 0 0 1</color>
+                        </transparent>
+                        <transparency>
+                            <float>1</float>
+                        </transparency>
+                        <index_of_refraction>
+                            <float>1</float>
+                        </index_of_refraction>
+                    </phong>
+                </technique>
+            </profile_COMMON>
+        </effect>
+    </library_effects>
+    <library_geometries>
+        <geometry id=""F1"" name=""Face1Geometry"">
+            <mesh>
+                <source id=""cube-vertex-positions"">
+                    <float_array id=""ID2-array"" count=""72"">-50 50 50 -50 -50 50 50 -50 50 50 50 50 -50 50 50 50 50 50 50 50 -50 -50 50 -50 -50 -50 -50 50 -50 -50 50 -50 50 -50 -50 50 -50 50 50 -50 50 -50 -50 -50 -50 -50 -50 50 50 -50 50 50 -50 -50 50 50 -50 50 50 50 50 50 -50 50 -50 -50 -50 -50 -50 -50 50 -50</float_array>
+                    <technique_common>
+                        <accessor source=""#ID2-array"" count=""24"" stride=""3"">
+                            <param name=""X"" type=""float""/>
+                            <param name=""Y"" type=""float""/>
+                            <param name=""Z"" type=""float""/>
+                        </accessor>
+                    </technique_common>
+                </source>
+                <vertices id=""cube-vertices"">
+                    <input semantic=""POSITION"" source=""#cube-vertex-positions""/>
+                </vertices>
+                <triangles count=""12"" material=""geometryElement5"">
+                    <input semantic=""VERTEX"" offset=""0"" source=""#cube-vertices""/>
+                    <p>0 1 2 0 2 3 4 5 6 4 6 7 8 9 10 8 10 11 12 13 14 12 14 15 16 17 18 16 18 19 20 21 22 20 22 23</p>
+                </triangles>
+            </mesh>
+        </geometry>
+    </library_geometries>
+    <library_visual_scenes>
+        <visual_scene id=""reportScene"">
+            <node id=""F1"" name=""Face1"">
+                <instance_geometry url=""#F1"">
+                    <bind_material>
+                        <technique_common>
+                            <instance_material symbol=""geometryElement5"" target=""#Blue""/>
+                        </technique_common>
+                    </bind_material>
+                </instance_geometry>
+            </node>
+        </visual_scene>
+    </library_visual_scenes>
+    <scene>
+        <instance_visual_scene url=""#reportScene""/>
+    </scene>
+</COLLADA>";
+            
+            File.WriteAllText(filePath, colladaContent);
+        }
+
         private static unsafe void Window_Render(double deltaTime)
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -192,14 +333,17 @@ namespace Szeminarium1_24_02_17_2
 
             DrawPulsingTeapot();
             DrawRevolvingCube();
+            DrawAirboatModel();
+            DrawColladaModel();  
 
-            SetModelMatrix(Matrix4X4.CreateTranslation(-2f, 0f, 0f));
-            Gl.BindVertexArray(airboatModel.Vao);
-            Gl.DrawElements(GLEnum.Triangles, airboatModel.IndexArrayLength, GLEnum.UnsignedInt, null);
-            Gl.BindVertexArray(0);
-
-            ImGuiNET.ImGui.Begin("Lighting", ImGuiWindowFlags.AlwaysAutoResize);
+            ImGuiNET.ImGui.Begin("Rendering Controls", ImGuiWindowFlags.AlwaysAutoResize);
             ImGuiNET.ImGui.SliderFloat("Shininess", ref Shininess, 1, 200);
+            ImGuiNET.ImGui.SliderFloat("COLLADA Rotation", ref ColladaModelRotation, 0, 6.28f);
+            bool animation = cubeArrangementModel.AnimationEnabeld;
+            if (ImGuiNET.ImGui.Checkbox("Animation", ref animation))
+            {
+                cubeArrangementModel.AnimationEnabeld = animation;
+            }
             ImGuiNET.ImGui.End();
 
             controller.Render();
@@ -213,7 +357,7 @@ namespace Szeminarium1_24_02_17_2
             Gl.DrawElements(GLEnum.Triangles, teapot.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
 
-            SetModelMatrix(Matrix4X4.Identity);
+            SetModelMatrix(Matrix4X4<float>.Identity);
             Gl.BindVertexArray(table.Vao);
             Gl.DrawElements(GLEnum.Triangles, table.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
@@ -231,21 +375,49 @@ namespace Szeminarium1_24_02_17_2
             Gl.BindVertexArray(0);
         }
 
+        private static unsafe void DrawAirboatModel()
+        {
+            SetModelMatrix(Matrix4X4.CreateTranslation(-2f, 0f, 0f));
+            Gl.BindVertexArray(airboatModel.Vao);
+            Gl.DrawElements(GLEnum.Triangles, airboatModel.IndexArrayLength, GLEnum.UnsignedInt, null);
+            Gl.BindVertexArray(0);
+        }
+
+        private static unsafe void DrawColladaModel()
+        {
+             
+            var rotY = Matrix4X4.CreateRotationY(ColladaModelRotation);
+            var trans = Matrix4X4.CreateTranslation(2f, 0f, 2f);
+            var scale = Matrix4X4.CreateScale(0.03f);  
+            
+            var model = scale * rotY * trans;
+            SetModelMatrix(model);
+
+            Gl.BindVertexArray(colladaModel.Vao);
+            Gl.DrawElements(GLEnum.Triangles, colladaModel.IndexArrayLength, GLEnum.UnsignedInt, null);
+            Gl.BindVertexArray(0);
+        }
+
         private static unsafe void Window_Closing()
         {
             teapot.ReleaseGlObject();
             table.ReleaseGlObject();
             glCubeRotating.ReleaseGlObject();
             airboatModel.ReleaseGlObject();
+            colladaModel.ReleaseGlObject();  
         }
+        
         private static unsafe void SetModelMatrix(Matrix4X4<float> model)
         {
             int loc = Gl.GetUniformLocation(program, ModelMatrixVariableName);
             Gl.UniformMatrix4(loc, 1, false, (float*)&model);
 
-            model.M41 = model.M42 = model.M43 = 0;
-            Matrix4X4.Invert(model, out var inv);
+             
+            Matrix4X4<float> normalMat = model;
+            normalMat.M41 = normalMat.M42 = normalMat.M43 = 0;  
+            Matrix4X4.Invert(normalMat, out var inv);
             Matrix3X3<float> norm = new Matrix3X3<float>(Matrix4X4.Transpose(inv));
+            
             loc = Gl.GetUniformLocation(program, NormalMatrixVariableName);
             Gl.UniformMatrix3(loc, 1, false, (float*)&norm);
         }
