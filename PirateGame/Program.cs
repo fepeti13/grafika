@@ -152,8 +152,8 @@ namespace PirateShootingGame
             {
                 case Key.W: gameState.Player.MoveForward(gameState); break;
                 case Key.S: gameState.Player.MoveBackward(gameState); break;
-                case Key.A: gameState.Player.TurnLeft(); break;
-                case Key.D: gameState.Player.TurnRight(); break;
+                case Key.D: gameState.Player.TurnLeft(); break;
+                case Key.A: gameState.Player.TurnRight(); break;
                 case Key.Space: gameState.ShootBullet(); break;
                 case Key.R: gameState.RestartGame(); break;
                 case Key.C: gameState.IsFirstPersonCamera = !gameState.IsFirstPersonCamera; break; 
@@ -288,7 +288,7 @@ namespace PirateShootingGame
             
             foreach (var tree in gameState.Trees)
             {
-                var treeTransform = Matrix4X4.CreateScale(0.1f) *  
+                var treeTransform = Matrix4X4.CreateScale(0.8f) *  
                                   Matrix4X4.CreateTranslation(tree.X, 0f, tree.Z);  
                 SetModelMatrix(treeTransform);
                 Gl.BindVertexArray(treeModel.Vao);
