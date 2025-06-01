@@ -17,119 +17,197 @@ namespace PirateShootingGame
             List<float[]> faceColors = new(); 
 
             string currentMaterial = "";
-            Dictionary<string, float[]> materialColors = new()
-            {
-                {"default", color},
-                {"Trank_bark", new float[] {0.4f, 0.2f, 0.1f, 1f}}, 
-                {"polySurface1SG1", new float[] {0.1f, 0.5f, 0.1f, 1f}}, 
-                {"14052PirateShipmateMuscular_cloth", new float[] {0.6f, 0.3f, 0.1f, 1f}}, 
-                {"14052PirateShipmateMuscular_body", new float[] {0.9f, 0.7f, 0.5f, 1f}}, 
-                {"14053_Pirate_Shipmate_Old", new float[] {0.8f, 0.6f, 0.4f, 1f}}, 
-                
-                {"14053PirateShipmateOld", new float[] {0.8f, 0.6f, 0.4f, 1f}},
-                {"Material__25", new float[] {0.8f, 0.6f, 0.4f, 1f}}
-            };
+            Dictionary<string, float[]> materialColors = new();
+            string mtlFilePath = "";
 
-            using (var reader = new StreamReader(path))
+            Console.WriteLine($"Loading OBJ file: {path}");
+
+            try
             {
-                while (!reader.EndOfStream)
+                using (var reader = new StreamReader(path))
                 {
-                    string line = reader.ReadLine();
-                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
-
-                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 0) continue;
-
-                    switch (parts[0])
+                    int lineNumber = 0;
+                    while (!reader.EndOfStream)
                     {
-                        case "v":
-                            if (parts.Length >= 4)
-                            {
-                                objVertices.Add(parts.Skip(1).Take(3).Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray());
-                            }
-                            break;
-                        case "vn":
-                            if (parts.Length >= 4)
-                            {
-                                objNormals.Add(parts.Skip(1).Take(3).Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray());
-                            }
-                            break;
-                        case "usemtl":
-                            if (parts.Length >= 2)
-                            {
-                                currentMaterial = parts[1];
-                                
-                                if (currentMaterial.ToLower().Contains("ground") || 
-                                    currentMaterial.ToLower().Contains("plane") ||
-                                    currentMaterial.ToLower().Contains("floor"))
-                                {
-                                    Console.WriteLine($"Skipping ground material: {currentMaterial}");
-                                }
-                            }
-                            break;
-                        case "f":
-                            if (parts.Length >= 4)
-                            {
-                                
-                                if (currentMaterial.ToLower().Contains("ground") || 
-                                    currentMaterial.ToLower().Contains("plane") ||
-                                    currentMaterial.ToLower().Contains("floor"))
-                                {
-                                    continue; 
-                                }
+                        lineNumber++;
+                        string line = reader.ReadLine();
+                        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
 
-                                
-                                var faceColor = materialColors.ContainsKey(currentMaterial) 
-                                    ? materialColors[currentMaterial] 
-                                    : color;
+                        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 0) continue;
 
-                                
-                                List<int> vertexIndices = new List<int>();
-                                
-                                for (int i = 1; i < parts.Length; i++)
+                        switch (parts[0])
+                        {
+                            case "v":
+                                if (parts.Length >= 4)
                                 {
-                                    if (parts[i].Contains("/"))
+                                    try
+                                    {
+                                        objVertices.Add(parts.Skip(1).Take(3).Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error parsing vertex at line {lineNumber}: {ex.Message}");
+                                    }
+                                }
+                                break;
+                            case "vn":
+                                if (parts.Length >= 4)
+                                {
+                                    try
+                                    {
+                                        objNormals.Add(parts.Skip(1).Take(3).Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error parsing normal at line {lineNumber}: {ex.Message}");
+                                    }
+                                }
+                                break;
+                            case "mtllib":
+                                if (parts.Length >= 2)
+                                {
+                                    Console.WriteLine($"Found MTL reference: {parts[1]}");
+                                    
+                                    var objDirectory = Path.GetDirectoryName(path);
+                                    mtlFilePath = Path.Combine(objDirectory, parts[1]);
+                                    Console.WriteLine($"Looking for MTL file at: {mtlFilePath}");
+                                    Console.WriteLine($"MTL file exists: {File.Exists(mtlFilePath)}");
+                                    materialColors = LoadMaterialColors(mtlFilePath, color);
+                                }
+                                break;
+                            case "usemtl":
+                                if (parts.Length >= 2)
+                                {
+                                    currentMaterial = parts[1];
+                                    Console.WriteLine($"Using material: {currentMaterial}");
+                                    
+                                    if (currentMaterial.ToLower().Contains("ground") || 
+                                        currentMaterial.ToLower().Contains("plane") ||
+                                        currentMaterial.ToLower().Contains("floor"))
+                                    {
+                                        Console.WriteLine($"Skipping ground material: {currentMaterial}");
+                                    }
+                                }
+                                break;
+                            case "f":
+                                if (parts.Length >= 4)
+                                {
+                                    try
                                     {
                                         
-                                        var tokens = parts[i].Split('/');
-                                        if (tokens.Length >= 1 && int.TryParse(tokens[0], out int vertexIndex))
+                                        if (currentMaterial.ToLower().Contains("ground") || 
+                                            currentMaterial.ToLower().Contains("plane") ||
+                                            currentMaterial.ToLower().Contains("floor"))
                                         {
-                                            vertexIndices.Add(vertexIndex);
+                                            continue; 
                                         }
-                                    }
-                                    else
-                                    {
+
                                         
-                                        if (int.TryParse(parts[i], out int vertexIndex))
+                                        var faceColor = materialColors.ContainsKey(currentMaterial) 
+                                            ? materialColors[currentMaterial] 
+                                            : color;
+
+                                        
+                                        if (!materialColors.ContainsKey(currentMaterial) && !string.IsNullOrEmpty(currentMaterial))
                                         {
-                                            vertexIndices.Add(vertexIndex);
+                                            Console.WriteLine($"Unknown material: '{currentMaterial}' - using default color");
+                                        }
+
+                                        
+                                        List<int> vertexIndices = new List<int>();
+                                        
+                                        for (int i = 1; i < parts.Length; i++)
+                                        {
+                                            if (parts[i].Contains("/"))
+                                            {
+                                                
+                                                var tokens = parts[i].Split('/');
+                                                if (tokens.Length >= 1 && int.TryParse(tokens[0], out int vertexIndex))
+                                                {
+                                                    vertexIndices.Add(vertexIndex);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                
+                                                if (int.TryParse(parts[i], out int vertexIndex))
+                                                {
+                                                    vertexIndices.Add(vertexIndex);
+                                                }
+                                            }
+                                        }
+                                        
+                                        
+                                        if (vertexIndices.Count >= 3)
+                                        {
+                                            for (int i = 1; i < vertexIndices.Count - 1; i++)
+                                            {
+                                                objFaces.Add(new int[] { vertexIndices[0], vertexIndices[i], vertexIndices[i + 1] });
+                                                faceColors.Add(faceColor); 
+                                            }
                                         }
                                     }
-                                }
-                                
-                                
-                                if (vertexIndices.Count >= 3)
-                                {
-                                    for (int i = 1; i < vertexIndices.Count - 1; i++)
+                                    catch (Exception ex)
                                     {
-                                        objFaces.Add(new int[] { vertexIndices[0], vertexIndices[i], vertexIndices[i + 1] });
-                                        faceColors.Add(faceColor); 
+                                        Console.WriteLine($"Error parsing face at line {lineNumber}: {ex.Message}");
                                     }
                                 }
-                            }
-                            break;
-                        
-                        case "mtllib":
-                        case "g":
-                        case "s":
+                                break;
                             
-                            break;
+                            case "g":
+                            case "s":
+                                
+                                break;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading OBJ file {path}: {ex.Message}");
+                throw;
+            }
+
+            
+            Console.WriteLine($"Material colors loaded: {materialColors.Count}");
+            if (materialColors.Count == 0)
+            {
+                Console.WriteLine("No MTL reference found in OBJ file, trying to find MTL file by naming convention...");
+                var objDirectory = Path.GetDirectoryName(path);
+                var objNameWithoutExt = Path.GetFileNameWithoutExtension(path);
+                var guessedMtlPath = Path.Combine(objDirectory, objNameWithoutExt + ".mtl");
+                Console.WriteLine($"Looking for MTL file at: {guessedMtlPath}");
+                Console.WriteLine($"MTL file exists: {File.Exists(guessedMtlPath)}");
+                
+                if (File.Exists(guessedMtlPath))
+                {
+                    materialColors = LoadMaterialColors(guessedMtlPath, color);
+                }
+                else
+                {
+                    Console.WriteLine("No MTL file found, using default colors");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Using {materialColors.Count} materials loaded from MTL file");
             }
 
             
             Console.WriteLine($"Loaded OBJ: {objVertices.Count} vertices, {objFaces.Count} faces");
+
+            if (objVertices.Count == 0)
+            {
+                Console.WriteLine("No vertices found in OBJ file!");
+                throw new Exception("No vertices found in OBJ file");
+            }
+
+            if (objFaces.Count == 0)
+            {
+                Console.WriteLine("No faces found in OBJ file!");
+                throw new Exception("No faces found in OBJ file");
+            }
 
             List<float> glVertices = new();
             List<float> glColors = new();
@@ -144,7 +222,106 @@ namespace PirateShootingGame
                 return GlCube.CreateCubeWithFaceColors(Gl, color, color, color, color, color, color);
             }
 
+            Console.WriteLine($"Created GL object with {glIndices.Count} indices");
             return CreateOpenGlObject(Gl, vao, glVertices, glColors, glIndices);
+        }
+
+        private static Dictionary<string, float[]> LoadMaterialColors(string mtlFilePath, float[] defaultColor)
+        {
+            var materialColors = new Dictionary<string, float[]>();
+            
+            if (!File.Exists(mtlFilePath))
+            {
+                Console.WriteLine($"MTL file not found: {mtlFilePath}");
+                return materialColors;
+            }
+
+            Console.WriteLine($"Loading MTL file: {mtlFilePath}");
+
+            try
+            {
+                string currentMaterial = "";
+                using (var reader = new StreamReader(mtlFilePath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+
+                        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 0) continue;
+
+                        switch (parts[0])
+                        {
+                            case "newmtl":
+                                if (parts.Length >= 2)
+                                {
+                                    currentMaterial = parts[1];
+                                    Console.WriteLine($"Found material definition: {currentMaterial}");
+                                    
+                                    materialColors[currentMaterial] = new float[] { 0.7f, 0.7f, 0.7f, 1.0f }; 
+                                }
+                                break;
+                            case "Kd": 
+                                if (parts.Length >= 4 && !string.IsNullOrEmpty(currentMaterial))
+                                {
+                                    try
+                                    {
+                                        float r = float.Parse(parts[1], CultureInfo.InvariantCulture);
+                                        float g = float.Parse(parts[2], CultureInfo.InvariantCulture);
+                                        float b = float.Parse(parts[3], CultureInfo.InvariantCulture);
+                                        
+                                        
+                                        if (r == 0f && g == 0f && b == 0f)
+                                        {
+                                            
+                                            r = g = b = 0.3f;
+                                            Console.WriteLine($"Material {currentMaterial}: Converting black to dark gray");
+                                        }
+                                        else if (r == 1f && g == 1f && b == 1f)
+                                        {
+                                            
+                                            r = g = b = 0.8f;
+                                            Console.WriteLine($"Material {currentMaterial}: Converting white to light gray");
+                                        }
+                                        
+                                        materialColors[currentMaterial] = new float[] { r, g, b, 1.0f };
+                                        Console.WriteLine($"Material {currentMaterial} diffuse color: ({r:F2}, {g:F2}, {b:F2})");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error parsing diffuse color for {currentMaterial}: {ex.Message}");
+                                    }
+                                }
+                                break;
+                            case "Ka": 
+                                if (parts.Length >= 4 && !string.IsNullOrEmpty(currentMaterial) && !materialColors.ContainsKey(currentMaterial))
+                                {
+                                    try
+                                    {
+                                        float r = float.Parse(parts[1], CultureInfo.InvariantCulture);
+                                        float g = float.Parse(parts[2], CultureInfo.InvariantCulture);
+                                        float b = float.Parse(parts[3], CultureInfo.InvariantCulture);
+                                        materialColors[currentMaterial] = new float[] { r, g, b, 1.0f };
+                                        Console.WriteLine($"Material {currentMaterial} ambient color: ({r:F2}, {g:F2}, {b:F2})");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error parsing ambient color for {currentMaterial}: {ex.Message}");
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading MTL file {mtlFilePath}: {ex.Message}");
+            }
+
+            Console.WriteLine($"Loaded {materialColors.Count} materials from MTL file");
+            return materialColors;
         }
 
         private static unsafe GlObject CreateOpenGlObject(GL Gl, uint vao, List<float> glVertices, List<float> glColors, List<uint> glIndices)
