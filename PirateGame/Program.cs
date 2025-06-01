@@ -19,7 +19,7 @@ namespace PirateShootingGame
 
         private static GlObject pirateModel;
         private static GlObject bulletModel;
-        private static GlObject houseModel;
+        private static GlObject treeModel;  
         private static GlObject groundModel;
         private static GlObject playerModel;
 
@@ -150,12 +150,13 @@ namespace PirateShootingGame
         {
             switch (key)
             {
-                case Key.W: gameState.Player.MoveForward(); break;
-                case Key.S: gameState.Player.MoveBackward(); break;
+                case Key.W: gameState.Player.MoveForward(gameState); break;
+                case Key.S: gameState.Player.MoveBackward(gameState); break;
                 case Key.A: gameState.Player.TurnLeft(); break;
                 case Key.D: gameState.Player.TurnRight(); break;
                 case Key.Space: gameState.ShootBullet(); break;
                 case Key.R: gameState.RestartGame(); break;
+                case Key.C: gameState.IsFirstPersonCamera = !gameState.IsFirstPersonCamera; break; 
                 case Key.Escape: window.Close(); break;
             }
         }
@@ -170,14 +171,14 @@ namespace PirateShootingGame
         {
             float[] pirateColor = [0.9f, 0.7f, 0.5f, 1f]; 
             float[] bulletColor = [1f, 1f, 0f, 1f]; 
-            float[] houseColor = [0.8f, 0.6f, 0.4f, 1f]; 
+            float[] treeColor = [0.1f, 0.4f, 0.1f, 1f]; 
             float[] groundColor = [0.2f, 0.7f, 0.2f, 1f]; 
-            float[] playerColor = [0.2f, 0.2f, 0.8f, 1f]; 
+            float[] playerColor = [0.8f, 0.6f, 0.4f, 1f]; 
 
             
             try
             {
-                pirateModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/pirates.obj", pirateColor);
+                pirateModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Pirate_Shipmate_Muscular/14052_Pirate_Shipmate_Muscular_v1_L3.obj", pirateColor);
                 Console.WriteLine("Successfully loaded pirates.obj");
             }
             catch (Exception ex)
@@ -197,20 +198,30 @@ namespace PirateShootingGame
 
             try
             {
-                houseModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/houses.obj", houseColor);
-                Console.WriteLine("Successfully loaded houses.obj");
+                treeModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Tree/Tree.obj", treeColor);
+                Console.WriteLine("Successfully loaded Tree.obj");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to load houses.obj: {ex.Message}");
-                houseModel = GlCube.CreateCubeWithFaceColors(Gl, houseColor, houseColor, houseColor, houseColor, houseColor, houseColor);
+                Console.WriteLine($"Failed to load Tree.obj: {ex.Message}");
+                treeModel = GlCube.CreateCubeWithFaceColors(Gl, treeColor, treeColor, treeColor, treeColor, treeColor, treeColor);
+            }
+
+            
+            try
+            {
+                playerModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Pirate_Shipmate_Old/14053_Pirate_Shipmate_Old_v1_L1.obj", playerColor);
+                Console.WriteLine("Successfully loaded main-caracter.obj");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load main-caracter.obj: {ex.Message}");
+                
+                playerModel = GlCube.CreateCubeWithFaceColors(Gl, playerColor, playerColor, playerColor, playerColor, playerColor, playerColor);
             }
 
             
             groundModel = GlCube.CreateSquare(Gl, groundColor);
-
-            
-            playerModel = GlCube.CreateCubeWithFaceColors(Gl, playerColor, playerColor, playerColor, playerColor, playerColor, playerColor);
         }
 
         private static unsafe void Window_Render(double deltaTime)
@@ -232,13 +243,17 @@ namespace PirateShootingGame
             Gl.BindVertexArray(0);
 
             
-            var playerTransform = Matrix4X4.CreateScale(0.5f) * 
-                                Matrix4X4.CreateRotationY(gameState.Player.Rotation) * 
-                                Matrix4X4.CreateTranslation(gameState.Player.Position.X, 0.5f, gameState.Player.Position.Z);
-            SetModelMatrix(playerTransform);
-            Gl.BindVertexArray(playerModel.Vao);
-            Gl.DrawElements(GLEnum.Triangles, playerModel.IndexArrayLength, GLEnum.UnsignedInt, null);
-            Gl.BindVertexArray(0);
+            if (!gameState.IsFirstPersonCamera)
+            {
+                var playerTransform = Matrix4X4.CreateScale(0.01f) *  
+                                    Matrix4X4.CreateRotationX(-MathF.PI / 2) *  
+                                    Matrix4X4.CreateRotationY(gameState.Player.Rotation) * 
+                                    Matrix4X4.CreateTranslation(gameState.Player.Position.X, 0.5f, gameState.Player.Position.Z);
+                SetModelMatrix(playerTransform);
+                Gl.BindVertexArray(playerModel.Vao);
+                Gl.DrawElements(GLEnum.Triangles, playerModel.IndexArrayLength, GLEnum.UnsignedInt, null);
+                Gl.BindVertexArray(0);
+            }
 
             
             foreach (var pirate in gameState.Pirates)
@@ -271,14 +286,13 @@ namespace PirateShootingGame
             }
 
             
-            foreach (var house in gameState.Houses)
+            foreach (var tree in gameState.Trees)
             {
-                var houseTransform = Matrix4X4.CreateScale(0.02f) *  
-                                   Matrix4X4.CreateRotationZ(MathF.PI / 2) *  
-                                   Matrix4X4.CreateTranslation(house.X, 0f, house.Z);  
-                SetModelMatrix(houseTransform);
-                Gl.BindVertexArray(houseModel.Vao);
-                Gl.DrawElements(GLEnum.Triangles, houseModel.IndexArrayLength, GLEnum.UnsignedInt, null);
+                var treeTransform = Matrix4X4.CreateScale(0.1f) *  
+                                  Matrix4X4.CreateTranslation(tree.X, 0f, tree.Z);  
+                SetModelMatrix(treeTransform);
+                Gl.BindVertexArray(treeModel.Vao);
+                Gl.DrawElements(GLEnum.Triangles, treeModel.IndexArrayLength, GLEnum.UnsignedInt, null);
                 Gl.BindVertexArray(0);
             }
 
@@ -289,6 +303,7 @@ namespace PirateShootingGame
 
         private static void DrawUI()
         {
+            
             ImGui.Begin("Game Stats", ImGuiWindowFlags.AlwaysAutoResize);
             ImGui.Text($"Pirates Defeated: {gameState.PiratesDefeated}");
             ImGui.Text($"Pirates Remaining: {gameState.Pirates.Count(p => p.IsAlive)}");
@@ -297,6 +312,7 @@ namespace PirateShootingGame
             ImGui.Text("Controls:");
             ImGui.Text("WASD - Move/Turn");
             ImGui.Text("SPACE - Shoot");
+            ImGui.Text("C - Toggle Camera");
             ImGui.Text("R - Restart Game");
             ImGui.Text("ESC - Exit");
             
@@ -308,13 +324,40 @@ namespace PirateShootingGame
             }
             
             ImGui.End();
+
+            
+            ImGui.Begin("Camera Settings", ImGuiWindowFlags.AlwaysAutoResize);
+            
+            bool isFirstPerson = gameState.IsFirstPersonCamera;
+            if (ImGui.Checkbox("First Person Camera", ref isFirstPerson))
+            {
+                gameState.IsFirstPersonCamera = isFirstPerson;
+            }
+            
+            ImGui.Separator();
+            ImGui.Text("Camera Mode:");
+            if (gameState.IsFirstPersonCamera)
+            {
+                ImGui.TextColored(new Vector4(1, 1, 0, 1), "First Person");
+                ImGui.Text("View from player's eyes");
+            }
+            else
+            {
+                ImGui.TextColored(new Vector4(0, 1, 1, 1), "Third Person");
+                ImGui.Text("External view following player");
+            }
+            
+            ImGui.Separator();
+            ImGui.Text("Toggle with 'C' key");
+            
+            ImGui.End();
         }
 
         private static void Window_Closing()
         {
             pirateModel?.ReleaseGlObject();
             bulletModel?.ReleaseGlObject();
-            houseModel?.ReleaseGlObject();
+            treeModel?.ReleaseGlObject();  
             groundModel?.ReleaseGlObject();
             playerModel?.ReleaseGlObject();
         }
@@ -333,13 +376,36 @@ namespace PirateShootingGame
 
         private static unsafe void SetViewMatrix()
         {
-            var cameraPos = new Vector3D<float>(
-                gameState.Player.Position.X - (float)Math.Sin(gameState.Player.Rotation) * 5f,
-                3f,
-                gameState.Player.Position.Z - (float)Math.Cos(gameState.Player.Rotation) * 5f
-            );
-            var target = new Vector3D<float>(gameState.Player.Position.X, 1f, gameState.Player.Position.Z);
-            var up = Vector3D<float>.UnitY;
+            Vector3D<float> cameraPos;
+            Vector3D<float> target;
+            Vector3D<float> up = Vector3D<float>.UnitY;
+
+            if (gameState.IsFirstPersonCamera)
+            {
+                
+                cameraPos = new Vector3D<float>(
+                    gameState.Player.Position.X,
+                    1.7f, 
+                    gameState.Player.Position.Z
+                );
+                
+                
+                target = new Vector3D<float>(
+                    gameState.Player.Position.X + MathF.Sin(gameState.Player.Rotation),
+                    1.7f,
+                    gameState.Player.Position.Z + MathF.Cos(gameState.Player.Rotation)
+                );
+            }
+            else
+            {
+                
+                cameraPos = new Vector3D<float>(
+                    gameState.Player.Position.X - (float)Math.Sin(gameState.Player.Rotation) * 5f,
+                    3f,
+                    gameState.Player.Position.Z - (float)Math.Cos(gameState.Player.Rotation) * 5f
+                );
+                target = new Vector3D<float>(gameState.Player.Position.X, 1f, gameState.Player.Position.Z);
+            }
 
             var view = Matrix4X4.CreateLookAt(cameraPos, target, up);
             int loc = Gl.GetUniformLocation(program, "uView");
@@ -368,12 +434,28 @@ namespace PirateShootingGame
         private static unsafe void SetViewerPosition()
         {
             int loc = Gl.GetUniformLocation(program, "viewPos");
-            var pos = new Vector3D<float>(
-                gameState.Player.Position.X - (float)Math.Sin(gameState.Player.Rotation) * 5f,
-                3f,
-                gameState.Player.Position.Z - (float)Math.Cos(gameState.Player.Rotation) * 5f
-            );
-            Gl.Uniform3(loc, pos.X, pos.Y, pos.Z);
+            
+            Vector3D<float> viewerPos;
+            if (gameState.IsFirstPersonCamera)
+            {
+                
+                viewerPos = new Vector3D<float>(
+                    gameState.Player.Position.X,
+                    1.7f,
+                    gameState.Player.Position.Z
+                );
+            }
+            else
+            {
+                
+                viewerPos = new Vector3D<float>(
+                    gameState.Player.Position.X - (float)Math.Sin(gameState.Player.Rotation) * 5f,
+                    3f,
+                    gameState.Player.Position.Z - (float)Math.Cos(gameState.Player.Rotation) * 5f
+                );
+            }
+            
+            Gl.Uniform3(loc, viewerPos.X, viewerPos.Y, viewerPos.Z);
         }
 
         private static unsafe void SetShininess()

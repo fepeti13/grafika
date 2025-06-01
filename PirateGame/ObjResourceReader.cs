@@ -20,11 +20,14 @@ namespace PirateShootingGame
             Dictionary<string, float[]> materialColors = new()
             {
                 {"default", color},
-                {"cottage_texture", new float[] {0.8f, 0.6f, 0.4f, 1f}}, 
-                {"ground", new float[] {0.3f, 0.6f, 0.2f, 1f}}, 
-                {"light_1", new float[] {1f, 1f, 0.8f, 1f}}, 
+                {"Trank_bark", new float[] {0.4f, 0.2f, 0.1f, 1f}}, 
+                {"polySurface1SG1", new float[] {0.1f, 0.5f, 0.1f, 1f}}, 
                 {"14052PirateShipmateMuscular_cloth", new float[] {0.6f, 0.3f, 0.1f, 1f}}, 
-                {"14052PirateShipmateMuscular_body", new float[] {0.9f, 0.7f, 0.5f, 1f}} 
+                {"14052PirateShipmateMuscular_body", new float[] {0.9f, 0.7f, 0.5f, 1f}}, 
+                {"14053_Pirate_Shipmate_Old", new float[] {0.8f, 0.6f, 0.4f, 1f}}, 
+                
+                {"14053PirateShipmateOld", new float[] {0.8f, 0.6f, 0.4f, 1f}},
+                {"Material__25", new float[] {0.8f, 0.6f, 0.4f, 1f}}
             };
 
             using (var reader = new StreamReader(path))
@@ -55,11 +58,26 @@ namespace PirateShootingGame
                             if (parts.Length >= 2)
                             {
                                 currentMaterial = parts[1];
+                                
+                                if (currentMaterial.ToLower().Contains("ground") || 
+                                    currentMaterial.ToLower().Contains("plane") ||
+                                    currentMaterial.ToLower().Contains("floor"))
+                                {
+                                    Console.WriteLine($"Skipping ground material: {currentMaterial}");
+                                }
                             }
                             break;
                         case "f":
                             if (parts.Length >= 4)
                             {
+                                
+                                if (currentMaterial.ToLower().Contains("ground") || 
+                                    currentMaterial.ToLower().Contains("plane") ||
+                                    currentMaterial.ToLower().Contains("floor"))
+                                {
+                                    continue; 
+                                }
+
                                 
                                 var faceColor = materialColors.ContainsKey(currentMaterial) 
                                     ? materialColors[currentMaterial] 
@@ -176,27 +194,7 @@ namespace PirateShootingGame
                     var cObjVertex = objVertices[face[2] - 1];
                     var c = new Vector3D<float>(cObjVertex[0], cObjVertex[1], cObjVertex[2]);
                     
-                    
-                    var side1 = Vector3D.Distance(a, b);
-                    var side2 = Vector3D.Distance(b, c);
-                    var side3 = Vector3D.Distance(c, a);
-                    var maxSide = Math.Max(Math.Max(side1, side2), side3);
-                    
-                    
-                    if (maxSide > 50f) 
-                    {
-                        Console.WriteLine($"Skipping large face with max side: {maxSide}");
-                        continue;
-                    }
-                    
                     var normal = Vector3D.Normalize(Vector3D.Cross(b - a, c - a));
-                    
-                    
-                    if (Math.Abs(normal.Y) > 0.9f && maxSide > 10f)
-                    {
-                        Console.WriteLine($"Skipping horizontal ground face");
-                        continue;
-                    }
 
                     for (int i = 0; i < 3; i++)
                     {

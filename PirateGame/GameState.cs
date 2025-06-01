@@ -7,8 +7,9 @@ namespace PirateShootingGame
         public Player Player { get; private set; }
         public List<Pirate> Pirates { get; private set; }
         public List<Bullet> Bullets { get; private set; }
-        public List<Vector3D<float>> Houses { get; private set; }
+        public List<Vector3D<float>> Trees { get; private set; }
         public int PiratesDefeated { get; private set; }
+        public bool IsFirstPersonCamera { get; set; } = false; 
 
         private Random random = new Random();
         private float bulletCooldown = 0f;
@@ -19,7 +20,7 @@ namespace PirateShootingGame
             Player = new Player();
             Pirates = new List<Pirate>();
             Bullets = new List<Bullet>();
-            Houses = new List<Vector3D<float>>();
+            Trees = new List<Vector3D<float>>();
         }
 
         public void Initialize()
@@ -29,10 +30,10 @@ namespace PirateShootingGame
 
             Pirates.Clear();
             Bullets.Clear();
-            Houses.Clear();
+            Trees.Clear();
             PiratesDefeated = 0;
 
-            // Spawn pirates randomly around the field
+            
             for (int i = 0; i < 8; i++)
             {
                 Pirates.Add(new Pirate
@@ -47,14 +48,45 @@ namespace PirateShootingGame
                 });
             }
 
-            // Place some houses for decoration
-            for (int i = 0; i < 5; i++)
+            
+            for (int i = 0; i < 20; i++)  
             {
-                Houses.Add(new Vector3D<float>(
-                    random.NextSingle() * 30f - 15f,
-                    0f,
-                    random.NextSingle() * 30f - 15f
-                ));
+                Vector3D<float> treePosition;
+                bool validPosition;
+                int attempts = 0;
+                
+                do
+                {
+                    validPosition = true;
+                    treePosition = new Vector3D<float>(
+                        random.NextSingle() * 35f - 17.5f,
+                        0f,
+                        random.NextSingle() * 35f - 17.5f
+                    );
+                    
+                    
+                    if (Vector3D.Distance(treePosition, Vector3D<float>.Zero) < 3f)
+                    {
+                        validPosition = false;
+                    }
+                    
+                    
+                    foreach (var existingTree in Trees)
+                    {
+                        if (Vector3D.Distance(treePosition, existingTree) < 2f)
+                        {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                    
+                    attempts++;
+                } while (!validPosition && attempts < 50); 
+                
+                if (validPosition)
+                {
+                    Trees.Add(treePosition);
+                }
             }
         }
 
@@ -63,20 +95,20 @@ namespace PirateShootingGame
             if (bulletCooldown > 0)
                 bulletCooldown -= deltaTime;
 
-            // Update bullets
+            
             for (int i = Bullets.Count - 1; i >= 0; i--)
             {
                 var bullet = Bullets[i];
                 bullet.Update(deltaTime);
 
-                // Remove bullets that are too far or inactive
+                
                 if (!bullet.IsActive || Vector3D.Distance(bullet.Position, Player.Position) > 50f)
                 {
                     Bullets.RemoveAt(i);
                     continue;
                 }
 
-                // Check collision with pirates
+                
                 foreach (var pirate in Pirates.Where(p => p.IsAlive))
                 {
                     if (Vector3D.Distance(new Vector3D<float>(bullet.Position.X, 0f, bullet.Position.Z), 
@@ -90,10 +122,10 @@ namespace PirateShootingGame
                 }
             }
 
-            // Update pirates (simple AI - move toward player slowly)
+            
             foreach (var pirate in Pirates.Where(p => p.IsAlive))
             {
-                pirate.Update(deltaTime, Player.Position);
+                pirate.Update(deltaTime, Player.Position, this);
             }
         }
 
@@ -120,6 +152,35 @@ namespace PirateShootingGame
         {
             Initialize();
         }
+
+        public bool IsPositionBlocked(Vector3D<float> position, float radius = 0.8f)
+        {
+            
+            foreach (var tree in Trees)
+            {
+                var distance = Vector3D.Distance(new Vector3D<float>(position.X, 0f, position.Z), 
+                                                new Vector3D<float>(tree.X, 0f, tree.Z));
+                if (distance < radius)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsPositionBlocked2D(Vector2D<float> position, float radius = 0.8f)
+        {
+            
+            foreach (var tree in Trees)
+            {
+                var distance = Vector2D.Distance(position, new Vector2D<float>(tree.X, tree.Z));
+                if (distance < radius)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     internal class Player
@@ -128,38 +189,50 @@ namespace PirateShootingGame
         public float Rotation { get; set; }
 
         private const float MoveSpeed = 8f;
-        private const float TurnSpeed = 3f;
+        private const float TurnSpeed = 1.5f;  
 
-        public void MoveForward()
+        public void MoveForward(GameState gameState)
         {
-            Position += new Vector3D<float>(
+            var newPosition = Position + new Vector3D<float>(
                 MathF.Sin(Rotation) * MoveSpeed * 0.1f,
                 0f,
                 MathF.Cos(Rotation) * MoveSpeed * 0.1f
             );
             
-            // Keep player in bounds
-            Position = new Vector3D<float>(
-                MathF.Max(-25f, MathF.Min(25f, Position.X)),
-                Position.Y,
-                MathF.Max(-25f, MathF.Min(25f, Position.Z))
+            
+            newPosition = new Vector3D<float>(
+                MathF.Max(-25f, MathF.Min(25f, newPosition.X)),
+                newPosition.Y,
+                MathF.Max(-25f, MathF.Min(25f, newPosition.Z))
             );
+
+            
+            if (!gameState.IsPositionBlocked(newPosition))
+            {
+                Position = newPosition;
+            }
         }
 
-        public void MoveBackward()
+        public void MoveBackward(GameState gameState)
         {
-            Position -= new Vector3D<float>(
+            var newPosition = Position - new Vector3D<float>(
                 MathF.Sin(Rotation) * MoveSpeed * 0.1f,
                 0f,
                 MathF.Cos(Rotation) * MoveSpeed * 0.1f
             );
             
-            // Keep player in bounds
-            Position = new Vector3D<float>(
-                MathF.Max(-25f, MathF.Min(25f, Position.X)),
-                Position.Y,
-                MathF.Max(-25f, MathF.Min(25f, Position.Z))
+            
+            newPosition = new Vector3D<float>(
+                MathF.Max(-25f, MathF.Min(25f, newPosition.X)),
+                newPosition.Y,
+                MathF.Max(-25f, MathF.Min(25f, newPosition.Z))
             );
+
+            
+            if (!gameState.IsPositionBlocked(newPosition))
+            {
+                Position = newPosition;
+            }
         }
 
         public void TurnLeft()
@@ -183,18 +256,18 @@ namespace PirateShootingGame
         private float moveTimer = 0f;
         private Vector2D<float> moveDirection;
 
-        public void Update(float deltaTime, Vector3D<float> playerPosition)
+        public void Update(float deltaTime, Vector3D<float> playerPosition, GameState gameState)
         {
             if (!IsAlive) return;
 
             moveTimer += deltaTime;
 
-            // Change direction every 2 seconds or move toward player occasionally
+            
             if (moveTimer >= 2f || moveDirection == Vector2D<float>.Zero)
             {
                 moveTimer = 0f;
                 
-                // 30% chance to move toward player, 70% chance to move randomly
+                
                 if (new Random().NextSingle() < 0.3f)
                 {
                     var directionToPlayer = Vector2D.Normalize(new Vector2D<float>(playerPosition.X - Position.X, playerPosition.Z - Position.Z));
@@ -210,19 +283,36 @@ namespace PirateShootingGame
                     moveDirection = Vector2D.Normalize(moveDirection);
                 }
 
-                // Update rotation to face movement direction
+                
                 Rotation = MathF.Atan2(moveDirection.X, moveDirection.Y);
             }
 
-            // Move the pirate
-            Position += new Vector3D<float>(moveDirection.X * MoveSpeed * deltaTime, 0f, moveDirection.Y * MoveSpeed * deltaTime);
+            
+            var newPosition = Position + new Vector3D<float>(moveDirection.X * MoveSpeed * deltaTime, 0f, moveDirection.Y * MoveSpeed * deltaTime);
 
-            // Keep pirates in bounds
-            Position = new Vector3D<float>(
-                MathF.Max(-30f, MathF.Min(30f, Position.X)),
-                Position.Y,
-                MathF.Max(-30f, MathF.Min(30f, Position.Z))
+            
+            newPosition = new Vector3D<float>(
+                MathF.Max(-30f, MathF.Min(30f, newPosition.X)),
+                newPosition.Y,
+                MathF.Max(-30f, MathF.Min(30f, newPosition.Z))
             );
+
+            
+            if (!gameState.IsPositionBlocked(newPosition))
+            {
+                Position = newPosition;
+            }
+            else
+            {
+                
+                var random = new Random();
+                moveDirection = new Vector2D<float>(
+                    random.NextSingle() * 2f - 1f,
+                    random.NextSingle() * 2f - 1f
+                );
+                moveDirection = Vector2D.Normalize(moveDirection);
+                moveTimer = 0f; 
+            }
         }
     }
 
