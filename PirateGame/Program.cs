@@ -109,7 +109,7 @@ namespace PirateShootingGame
             controller = new ImGuiController(Gl, window, inputContext);
 
             window.FramebufferResize += s => Gl.Viewport(s);
-            Gl.ClearColor(0.5f, 0.8f, 1.0f, 1.0f); // Sky blue background
+            Gl.ClearColor(0.5f, 0.8f, 1.0f, 1.0f); 
 
             SetUpObjects();
             LinkProgram();
@@ -168,19 +168,21 @@ namespace PirateShootingGame
 
         private static void SetUpObjects()
         {
-            float[] pirateColor = [0.8f, 0.4f, 0.2f, 1f]; // Brown
-            float[] bulletColor = [1f, 1f, 0f, 1f]; // Yellow
-            float[] houseColor = [0.6f, 0.3f, 0.1f, 1f]; // Dark brown
-            float[] groundColor = [0.2f, 0.7f, 0.2f, 1f]; // Green
-            float[] playerColor = [0.2f, 0.2f, 0.8f, 1f]; // Blue
+            float[] pirateColor = [0.9f, 0.7f, 0.5f, 1f]; 
+            float[] bulletColor = [1f, 1f, 0f, 1f]; 
+            float[] houseColor = [0.8f, 0.6f, 0.4f, 1f]; 
+            float[] groundColor = [0.2f, 0.7f, 0.2f, 1f]; 
+            float[] playerColor = [0.2f, 0.2f, 0.8f, 1f]; 
 
-            // Try to load OBJ files, fallback to cubes if files don't exist
+            
             try
             {
                 pirateModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/pirates.obj", pirateColor);
+                Console.WriteLine("Successfully loaded pirates.obj");
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Failed to load pirates.obj: {ex.Message}");
                 pirateModel = GlCube.CreateCubeWithFaceColors(Gl, pirateColor, pirateColor, pirateColor, pirateColor, pirateColor, pirateColor);
             }
 
@@ -196,16 +198,18 @@ namespace PirateShootingGame
             try
             {
                 houseModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/houses.obj", houseColor);
+                Console.WriteLine("Successfully loaded houses.obj");
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Failed to load houses.obj: {ex.Message}");
                 houseModel = GlCube.CreateCubeWithFaceColors(Gl, houseColor, houseColor, houseColor, houseColor, houseColor, houseColor);
             }
 
-            // Create ground plane
+            
             groundModel = GlCube.CreateSquare(Gl, groundColor);
 
-            // Player model (use a cube for now)
+            
             playerModel = GlCube.CreateCubeWithFaceColors(Gl, playerColor, playerColor, playerColor, playerColor, playerColor, playerColor);
         }
 
@@ -221,13 +225,13 @@ namespace PirateShootingGame
             SetViewerPosition();
             SetShininess();
 
-            // Draw ground
+            
             SetModelMatrix(Matrix4X4.CreateScale(50f));
             Gl.BindVertexArray(groundModel.Vao);
             Gl.DrawElements(GLEnum.Triangles, groundModel.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
 
-            // Draw player
+            
             var playerTransform = Matrix4X4.CreateScale(0.5f) * 
                                 Matrix4X4.CreateRotationY(gameState.Player.Rotation) * 
                                 Matrix4X4.CreateTranslation(gameState.Player.Position.X, 0.5f, gameState.Player.Position.Z);
@@ -236,12 +240,13 @@ namespace PirateShootingGame
             Gl.DrawElements(GLEnum.Triangles, playerModel.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
 
-            // Draw pirates
+            
             foreach (var pirate in gameState.Pirates)
             {
                 if (pirate.IsAlive)
                 {
-                    var pirateTransform = Matrix4X4.CreateScale(0.7f) * 
+                    var pirateTransform = Matrix4X4.CreateScale(0.01f) *  
+                                        Matrix4X4.CreateRotationX(-MathF.PI / 2) *  
                                         Matrix4X4.CreateRotationY(pirate.Rotation) * 
                                         Matrix4X4.CreateTranslation(pirate.Position.X, 0.5f, pirate.Position.Z);
                     SetModelMatrix(pirateTransform);
@@ -251,7 +256,7 @@ namespace PirateShootingGame
                 }
             }
 
-            // Draw bullets
+            
             foreach (var bullet in gameState.Bullets)
             {
                 if (bullet.IsActive)
@@ -265,18 +270,19 @@ namespace PirateShootingGame
                 }
             }
 
-            // Draw houses
+            
             foreach (var house in gameState.Houses)
             {
-                var houseTransform = Matrix4X4.CreateScale(2f) * 
-                                   Matrix4X4.CreateTranslation(house.X, 1f, house.Z);
+                var houseTransform = Matrix4X4.CreateScale(0.02f) *  
+                                   Matrix4X4.CreateRotationZ(MathF.PI / 2) *  
+                                   Matrix4X4.CreateTranslation(house.X, 0f, house.Z);  
                 SetModelMatrix(houseTransform);
                 Gl.BindVertexArray(houseModel.Vao);
                 Gl.DrawElements(GLEnum.Triangles, houseModel.IndexArrayLength, GLEnum.UnsignedInt, null);
                 Gl.BindVertexArray(0);
             }
 
-            // Draw UI
+            
             DrawUI();
             controller.Render();
         }
