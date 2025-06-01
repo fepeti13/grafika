@@ -22,14 +22,13 @@ namespace Lab2
         private static List<GlCube> rubikCubes = new();
         private static List<Vector3D<float>> rubikPositions = new();
         private static List<bool> cubeInRotatingSlice = new();
-        
+        private static List<Matrix4X4<float>> rubikRotations = new();
         private static int currentSlice = 1;
         private static int sliceAxis = 1;
         private static bool isRotating = false;
         private static float currentRotationAngle = 0.0f;
         private static float targetRotationAngle = 0.0f;
         private static float rotationSpeed = 3.0f;
-
         private static readonly string VertexShaderSource = @"
         #version 330 core
         layout (location = 0) in vec3 vPos;
@@ -228,29 +227,30 @@ namespace Lab2
             float spacing = 1.1f;
 
             for (int x = -1; x <= 1; x++)
-            for (int y = -1; y <= 1; y++)
-            for (int z = -1; z <= 1; z++)
-            {
-                float[] red     = [1.0f, 0.0f, 0.0f, 1.0f];
-                float[] orange  = [1.0f, 0.5f, 0.0f, 1.0f];
-                float[] white   = [1.0f, 1.0f, 1.0f, 1.0f];
-                float[] yellow  = [1.0f, 1.0f, 0.0f, 1.0f];
-                float[] blue    = [0.0f, 0.0f, 1.0f, 1.0f];
-                float[] green   = [0.0f, 1.0f, 0.0f, 1.0f];
-                float[] black   = [0.2f, 0.2f, 0.2f, 1.0f];
+                for (int y = -1; y <= 1; y++)
+                    for (int z = -1; z <= 1; z++)
+                    {
+                        float[] red = [1.0f, 0.0f, 0.0f, 1.0f];
+                        float[] orange = [1.0f, 0.5f, 0.0f, 1.0f];
+                        float[] white = [1.0f, 1.0f, 1.0f, 1.0f];
+                        float[] yellow = [1.0f, 1.0f, 0.0f, 1.0f];
+                        float[] blue = [0.0f, 0.0f, 1.0f, 1.0f];
+                        float[] green = [0.0f, 1.0f, 0.0f, 1.0f];
+                        float[] black = [0.2f, 0.2f, 0.2f, 1.0f];
 
-                float[] face1 = y == 1 ? white : black;
-                float[] face2 = z == 1 ? red : black;
-                float[] face3 = x == -1 ? blue : black;
-                float[] face4 = y == -1 ? yellow : black;
-                float[] face5 = z == -1 ? orange : black;
-                float[] face6 = x == 1 ? green : black;
+                        float[] face1 = y == 1 ? white : black;
+                        float[] face2 = z == 1 ? red : black;
+                        float[] face3 = x == -1 ? blue : black;
+                        float[] face4 = y == -1 ? yellow : black;
+                        float[] face5 = z == -1 ? orange : black;
+                        float[] face6 = x == 1 ? green : black;
 
-                var cube = GlCube.CreateCubeWithFaceColors(Gl, face1, face2, face3, face4, face5, face6);
-                
-                rubikCubes.Add(cube);
-                rubikPositions.Add(new Vector3D<float>(x * spacing, y * spacing, z * spacing));
-                cubeInRotatingSlice.Add(false);
+                        var cube = GlCube.CreateCubeWithFaceColors(Gl, face1, face2, face3, face4, face5, face6);
+
+                        rubikCubes.Add(cube);
+                        rubikPositions.Add(new Vector3D<float>(x * spacing, y * spacing, z * spacing));
+                        cubeInRotatingSlice.Add(false);
+                        rubikRotations.Add(Matrix4X4<float>.Identity);
             }
         }
 
@@ -284,31 +284,44 @@ namespace Lab2
 
         private static void FinishRotation()
         {
-            
+            Matrix4X4<float> sliceRotation;
+            if (sliceAxis == 0)
+                sliceRotation = Matrix4X4.CreateRotationX(targetRotationAngle);
+            else if (sliceAxis == 1)
+                sliceRotation = Matrix4X4.CreateRotationY(targetRotationAngle);
+            else
+                sliceRotation = Matrix4X4.CreateRotationZ(targetRotationAngle);
+
+            float spacing = 1.1f;
+
             for (int i = 0; i < rubikPositions.Count; i++)
             {
                 if (cubeInRotatingSlice[i])
                 {
+                    rubikRotations[i] = rubikRotations[i] * sliceRotation;
+
                     Vector3D<float> position = rubikPositions[i];
-                    Vector3D<float> rotatedPosition = RotatePointAroundAxis(
-                        position, 
-                        Vector3D<float>.Zero, 
-                        GetRotationAxis(), 
+                    Vector3D<float> gridPosition = position / spacing;
+
+                    Vector3D<float> rotatedGridPos = RotatePointAroundAxis(
+                        gridPosition,
+                        Vector3D<float>.Zero,
+                        GetRotationAxis(),
                         targetRotationAngle);
+
+                    rotatedGridPos.X = (float)Math.Round(rotatedGridPos.X);
+                    rotatedGridPos.Y = (float)Math.Round(rotatedGridPos.Y);
+                    rotatedGridPos.Z = (float)Math.Round(rotatedGridPos.Z);
                     
-                    
-                    rotatedPosition.X = (float)Math.Round(rotatedPosition.X * 2) / 2;
-                    rotatedPosition.Y = (float)Math.Round(rotatedPosition.Y * 2) / 2;
-                    rotatedPosition.Z = (float)Math.Round(rotatedPosition.Z * 2) / 2;
-                    
-                    rubikPositions[i] = rotatedPosition;
+                    rubikPositions[i] = rotatedGridPos * spacing;
                 }
             }
 
-            
             isRotating = false;
             currentRotationAngle = 0;
         }
+
+
 
         private static Vector3D<float> GetRotationAxis()
         {
@@ -366,7 +379,7 @@ namespace Lab2
                 Gl.BindVertexArray(cube.Vao);
 
                 
-                var modelMatrix = Matrix4X4.CreateTranslation(position);
+                var modelMatrix = rubikRotations[i] * Matrix4X4.CreateTranslation(position);
                 int modelLocation = Gl.GetUniformLocation(program, ModelMatrixVariableName);
                 if (modelLocation == -1)
                 {

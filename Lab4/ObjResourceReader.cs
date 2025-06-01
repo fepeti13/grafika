@@ -89,7 +89,7 @@ namespace Szeminarium1_24_02_17_2
 
             uint vertices = Gl.GenBuffer();
             Gl.BindBuffer(GLEnum.ArrayBuffer, vertices);
-            Gl.BufferData(GLEnum.ArrayBuffer, glVertices.ToArray(), GLEnum.StaticDraw);
+            Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)glVertices.ToArray().AsSpan(), GLEnum.StaticDraw);
             Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, vertexSize, (void*)offsetPos);
             Gl.EnableVertexAttribArray(0);
 
@@ -98,14 +98,13 @@ namespace Szeminarium1_24_02_17_2
 
             uint colors = Gl.GenBuffer();
             Gl.BindBuffer(GLEnum.ArrayBuffer, colors);
-            Gl.BufferData(GLEnum.ArrayBuffer, glColors.ToArray(), GLEnum.StaticDraw);
+            Gl.BufferData(GLEnum.ArrayBuffer, (ReadOnlySpan<float>)glColors.ToArray().AsSpan(), GLEnum.StaticDraw);
             Gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 0, null);
             Gl.EnableVertexAttribArray(1);
 
             uint indices = Gl.GenBuffer();
             Gl.BindBuffer(GLEnum.ElementArrayBuffer, indices);
-            Gl.BufferData(GLEnum.ElementArrayBuffer, glIndices.ToArray(), GLEnum.StaticDraw);
-
+            Gl.BufferData(GLEnum.ElementArrayBuffer, (ReadOnlySpan<uint>)glIndices.ToArray().AsSpan(), GLEnum.StaticDraw);
             Gl.BindBuffer(GLEnum.ArrayBuffer, 0);
             return new GlObject(vao, vertices, colors, indices, (uint)glIndices.Count, Gl);
         }
@@ -141,9 +140,12 @@ namespace Szeminarium1_24_02_17_2
             {
                 foreach (var face in objFaces)
                 {
-                    var a = new Vector3D<float>(objVertices[face[0] - 1]);
-                    var b = new Vector3D<float>(objVertices[face[1] - 1]);
-                    var c = new Vector3D<float>(objVertices[face[2] - 1]);
+                    var aObjVertex = objVertices[face[0] - 1];
+                    var a = new Vector3D<float>(aObjVertex[0], aObjVertex[1], aObjVertex[2]);
+                    var bObjVertex = objVertices[face[1] - 1];
+                    var b = new Vector3D<float>(bObjVertex[0], bObjVertex[1], bObjVertex[2]);
+                    var cObjVertex = objVertices[face[2] - 1];
+                    var c = new Vector3D<float>(cObjVertex[0], cObjVertex[1], cObjVertex[2]);
                     var normal = Vector3D.Normalize(Vector3D.Cross(b - a, c - a));
 
                     for (int i = 0; i < 3; i++)

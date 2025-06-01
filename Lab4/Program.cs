@@ -176,7 +176,7 @@ namespace Szeminarium1_24_02_17_2
             teapot = ObjResourceReader.CreateTeapotWithColor(Gl, face1Color);
             table = GlCube.CreateSquare(Gl, tableColor);
             glCubeRotating = GlCube.CreateCubeWithFaceColors(Gl, face1Color, face1Color, face1Color, face1Color, face1Color, face1Color);
-            airboatModel = ObjResourceReader.CreateFromObjFile(Gl, "airboat.obj", airboatColor);
+            airboatModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/airboat.obj", airboatColor);
         }
         private static unsafe void Window_Render(double deltaTime)
         {
@@ -213,7 +213,7 @@ namespace Szeminarium1_24_02_17_2
             Gl.DrawElements(GLEnum.Triangles, teapot.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
 
-            SetModelMatrix(Matrix4X4.Identity);
+            SetModelMatrix(Matrix4X4<float>.Identity);
             Gl.BindVertexArray(table.Vao);
             Gl.DrawElements(GLEnum.Triangles, table.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
