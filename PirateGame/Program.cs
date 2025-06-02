@@ -22,6 +22,7 @@ namespace PirateShootingGame
         private static GlObject treeModel;  
         private static GlObject groundModel;
         private static GlObject playerModel;
+        private static Skybox skybox; // ONLY SKYBOX ADDITION
 
         private static readonly string VertexShaderSource = @"
         #version 330 core
@@ -115,6 +116,9 @@ namespace PirateShootingGame
             LinkProgram();
             gameState.Initialize();
 
+            // SKYBOX ADDITION
+            skybox = new Skybox(Gl);
+
             Gl.Enable(EnableCap.DepthTest);
             Gl.DepthFunc(DepthFunction.Lequal);
             Gl.Enable(EnableCap.CullFace);
@@ -152,8 +156,8 @@ namespace PirateShootingGame
             {
                 case Key.W: gameState.Player.MoveForward(gameState); break;
                 case Key.S: gameState.Player.MoveBackward(gameState); break;
-                case Key.D: gameState.Player.TurnLeft(); break;
-                case Key.A: gameState.Player.TurnRight(); break;
+                case Key.A: gameState.Player.TurnLeft(); break;
+                case Key.D: gameState.Player.TurnRight(); break;
                 case Key.Space: gameState.ShootBullet(); break;
                 case Key.R: gameState.RestartGame(); break;
                 case Key.C: gameState.IsFirstPersonCamera = !gameState.IsFirstPersonCamera; break; 
@@ -227,6 +231,13 @@ namespace PirateShootingGame
         private static unsafe void Window_Render(double deltaTime)
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            // SKYBOX ADDITION - Render skybox first
+            var view = GetCurrentViewMatrix();
+            var projection = GetCurrentProjectionMatrix();
+            skybox.Render(view, projection);
+
+            // YOUR ORIGINAL RENDERING CODE UNCHANGED
             Gl.UseProgram(program);
 
             SetViewMatrix();
@@ -348,7 +359,7 @@ namespace PirateShootingGame
             }
             
             ImGui.Separator();
-            ImGui.Text("Toggle with 'C' key");
+            ImGui.Text("Change with 'C' key");
             
             ImGui.End();
         }
@@ -360,6 +371,7 @@ namespace PirateShootingGame
             treeModel?.ReleaseGlObject();  
             groundModel?.ReleaseGlObject();
             playerModel?.ReleaseGlObject();
+            skybox?.Dispose(); // SKYBOX CLEANUP
         }
 
         private static unsafe void SetModelMatrix(Matrix4X4<float> model)
@@ -376,19 +388,25 @@ namespace PirateShootingGame
 
         private static unsafe void SetViewMatrix()
         {
+            var view = GetCurrentViewMatrix();
+            int loc = Gl.GetUniformLocation(program, "uView");
+            Gl.UniformMatrix4(loc, 1, false, (float*)&view);
+        }
+
+        // SKYBOX HELPER FUNCTIONS
+        private static Matrix4X4<float> GetCurrentViewMatrix()
+        {
             Vector3D<float> cameraPos;
             Vector3D<float> target;
             Vector3D<float> up = Vector3D<float>.UnitY;
 
             if (gameState.IsFirstPersonCamera)
             {
-                
                 cameraPos = new Vector3D<float>(
                     gameState.Player.Position.X,
                     1.7f, 
                     gameState.Player.Position.Z
                 );
-                
                 
                 target = new Vector3D<float>(
                     gameState.Player.Position.X + MathF.Sin(gameState.Player.Rotation),
@@ -398,7 +416,6 @@ namespace PirateShootingGame
             }
             else
             {
-                
                 cameraPos = new Vector3D<float>(
                     gameState.Player.Position.X - (float)Math.Sin(gameState.Player.Rotation) * 5f,
                     3f,
@@ -407,16 +424,19 @@ namespace PirateShootingGame
                 target = new Vector3D<float>(gameState.Player.Position.X, 1f, gameState.Player.Position.Z);
             }
 
-            var view = Matrix4X4.CreateLookAt(cameraPos, target, up);
-            int loc = Gl.GetUniformLocation(program, "uView");
-            Gl.UniformMatrix4(loc, 1, false, (float*)&view);
+            return Matrix4X4.CreateLookAt(cameraPos, target, up);
         }
 
         private static unsafe void SetProjectionMatrix()
         {
-            var proj = Matrix4X4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, 1024f / 768f, 0.1f, 100f);
+            var proj = GetCurrentProjectionMatrix();
             int loc = Gl.GetUniformLocation(program, "uProjection");
             Gl.UniformMatrix4(loc, 1, false, (float*)&proj);
+        }
+
+        private static Matrix4X4<float> GetCurrentProjectionMatrix()
+        {
+            return Matrix4X4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, 1024f / 768f, 0.1f, 100f);
         }
 
         private static unsafe void SetLightColor()

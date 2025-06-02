@@ -23,6 +23,9 @@ namespace PirateShootingGame
             Trees = new List<Vector3D<float>>();
         }
 
+        /*
+        It just sets up the objects
+        */
         public void Initialize()
         {
             Player.Position = new Vector3D<float>(0f, 0f, 0f);
@@ -33,7 +36,7 @@ namespace PirateShootingGame
             Trees.Clear();
             PiratesDefeated = 0;
 
-            
+
             for (int i = 0; i < 8; i++)
             {
                 Pirates.Add(new Pirate
@@ -48,13 +51,13 @@ namespace PirateShootingGame
                 });
             }
 
-            
-            for (int i = 0; i < 20; i++)  
+
+            for (int i = 0; i < 20; i++)
             {
                 Vector3D<float> treePosition;
                 bool validPosition;
                 int attempts = 0;
-                
+
                 do
                 {
                     validPosition = true;
@@ -63,14 +66,14 @@ namespace PirateShootingGame
                         0f,
                         random.NextSingle() * 35f - 17.5f
                     );
-                    
-                    
+
+
                     if (Vector3D.Distance(treePosition, Vector3D<float>.Zero) < 3f)
                     {
                         validPosition = false;
                     }
-                    
-                    
+
+
                     foreach (var existingTree in Trees)
                     {
                         if (Vector3D.Distance(treePosition, existingTree) < 2f)
@@ -79,10 +82,10 @@ namespace PirateShootingGame
                             break;
                         }
                     }
-                    
+
                     attempts++;
-                } while (!validPosition && attempts < 50); 
-                
+                } while (!validPosition && attempts < 50);
+
                 if (validPosition)
                 {
                     Trees.Add(treePosition);
