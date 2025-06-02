@@ -24,7 +24,7 @@ namespace PirateShootingGame
         {
             TexCoords = aPos;
             vec4 pos = projection * view * vec4(aPos, 1.0);
-            gl_Position = pos.xyww;  // Trick to keep skybox at far plane
+            gl_Position = pos.xyww;  
         }";
 
         private readonly string SkyboxFragmentShader = @"
@@ -40,9 +40,9 @@ namespace PirateShootingGame
             FragColor = texture(skybox, TexCoords);
         }";
 
-        // Skybox cube vertices
+        
         private readonly float[] skyboxVertices = {
-            // positions          
+            
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
              1.0f, -1.0f, -1.0f,
@@ -135,7 +135,7 @@ namespace PirateShootingGame
             skyboxTexture = gl.GenTexture();
             gl.BindTexture(TextureTarget.TextureCubeMap, skyboxTexture);
 
-            // Load the actual skybox images
+            
             LoadSkyboxImages();
 
             gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
@@ -147,15 +147,15 @@ namespace PirateShootingGame
 
         private unsafe void LoadSkyboxImages()
         {
-            // Define the face targets and corresponding file names
+            
             var faceData = new[]
             {
-                (Target: TextureTarget.TextureCubeMapPositiveX, File: "Daylight Box_Right.bmp"),   // Right
-                (Target: TextureTarget.TextureCubeMapNegativeX, File: "Daylight Box_Left.bmp"),    // Left  
-                (Target: TextureTarget.TextureCubeMapPositiveY, File: "Daylight Box_Top.bmp"),     // Top
-                (Target: TextureTarget.TextureCubeMapNegativeY, File: "Daylight Box_Bottom.bmp"),  // Bottom
-                (Target: TextureTarget.TextureCubeMapPositiveZ, File: "Daylight Box_Front.bmp"),   // Front
-                (Target: TextureTarget.TextureCubeMapNegativeZ, File: "Daylight Box_Back.bmp")     // Back
+                (Target: TextureTarget.TextureCubeMapPositiveX, File: "Daylight Box_Right.bmp"),   
+                (Target: TextureTarget.TextureCubeMapNegativeX, File: "Daylight Box_Left.bmp"),    
+                (Target: TextureTarget.TextureCubeMapPositiveY, File: "Daylight Box_Top.bmp"),     
+                (Target: TextureTarget.TextureCubeMapNegativeY, File: "Daylight Box_Bottom.bmp"),  
+                (Target: TextureTarget.TextureCubeMapPositiveZ, File: "Daylight Box_Front.bmp"),   
+                (Target: TextureTarget.TextureCubeMapNegativeZ, File: "Daylight Box_Back.bmp")     
             };
 
             foreach (var face in faceData)
@@ -167,7 +167,7 @@ namespace PirateShootingGame
                     if (!File.Exists(filePath))
                     {
                         Console.WriteLine($"Skybox image not found: {filePath}");
-                        // Create a fallback colored face
+                        
                         CreateFallbackFace(face.Target);
                         continue;
                     }
@@ -199,17 +199,17 @@ namespace PirateShootingGame
 
         private unsafe void CreateFallbackFace(TextureTarget target)
         {
-            // Create a simple colored fallback face
+            
             int size = 256;
             byte[] pixels = new byte[size * size * 3];
             
-            // Different colors for different faces for debugging
-            byte r = 135, g = 206, b = 235; // Default sky blue
+            
+            byte r = 135, g = 206, b = 235; 
             
             switch (target)
             {
-                case TextureTarget.TextureCubeMapPositiveY: r = 100; g = 149; b = 237; break; // Top - lighter
-                case TextureTarget.TextureCubeMapNegativeY: r = 70; g = 130; b = 180; break;  // Bottom - darker
+                case TextureTarget.TextureCubeMapPositiveY: r = 100; g = 149; b = 237; break; 
+                case TextureTarget.TextureCubeMapNegativeY: r = 70; g = 130; b = 180; break;  
             }
 
             for (int i = 0; i < pixels.Length; i += 3)
@@ -232,23 +232,23 @@ namespace PirateShootingGame
                 using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 using var reader = new BinaryReader(fileStream);
 
-                // Read BMP header
+                
                 var signature = reader.ReadUInt16();
-                if (signature != 0x4D42) // "BM" in little endian
+                if (signature != 0x4D42) 
                 {
                     Console.WriteLine($"Invalid BMP signature in {filePath}");
                     return null;
                 }
 
-                reader.ReadUInt32(); // File size
-                reader.ReadUInt32(); // Reserved
+                reader.ReadUInt32(); 
+                reader.ReadUInt32(); 
                 var dataOffset = reader.ReadUInt32();
 
-                // Read DIB header
+                
                 var dibHeaderSize = reader.ReadUInt32();
                 var width = reader.ReadInt32();
                 var height = reader.ReadInt32();
-                reader.ReadUInt16(); // Planes
+                reader.ReadUInt16(); 
                 var bitsPerPixel = reader.ReadUInt16();
                 var compression = reader.ReadUInt32();
 
@@ -258,19 +258,19 @@ namespace PirateShootingGame
                     return null;
                 }
 
-                // Skip to pixel data
+                
                 fileStream.Seek(dataOffset, SeekOrigin.Begin);
 
-                // Calculate row padding
+                
                 int rowPadding = (4 - (width * 3) % 4) % 4;
                 var pixels = new byte[width * height * 3];
 
-                // Read pixel data (BMP is stored bottom-to-top)
+                
                 for (int y = height - 1; y >= 0; y--)
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        // BMP stores as BGR, we need RGB
+                        
                         byte b = reader.ReadByte();
                         byte g = reader.ReadByte();
                         byte r = reader.ReadByte();
@@ -281,7 +281,7 @@ namespace PirateShootingGame
                         pixels[index + 2] = b;
                     }
                     
-                    // Skip row padding
+                    
                     for (int p = 0; p < rowPadding; p++)
                     {
                         reader.ReadByte();
@@ -311,12 +311,12 @@ namespace PirateShootingGame
 
         public unsafe void Render(Matrix4X4<float> view, Matrix4X4<float> projection)
         {
-            // Change depth function so depth test passes when values are equal to depth buffer's content
+            
             gl.DepthFunc(DepthFunction.Lequal);
             
             gl.UseProgram(skyboxProgram);
             
-            // Remove translation from view matrix (keep only rotation)
+            
             var skyboxView = new Matrix4X4<float>(
                 view.M11, view.M12, view.M13, 0,
                 view.M21, view.M22, view.M23, 0,
@@ -330,14 +330,14 @@ namespace PirateShootingGame
             int projLoc = gl.GetUniformLocation(skyboxProgram, "projection");
             gl.UniformMatrix4(projLoc, 1, false, (float*)&projection);
 
-            // Skybox cube
+            
             gl.BindVertexArray(skyboxVAO);
             gl.ActiveTexture(TextureUnit.Texture0);
             gl.BindTexture(TextureTarget.TextureCubeMap, skyboxTexture);
             gl.DrawArrays(PrimitiveType.Triangles, 0, 36);
             gl.BindVertexArray(0);
 
-            // Set depth function back to default
+            
             gl.DepthFunc(DepthFunction.Less);
         }
 

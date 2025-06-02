@@ -9,7 +9,8 @@
       "Szeminarium1_24_02_17_2/1.0.0": {
         "dependencies": {
           "Silk.NET": "2.20.0",
-          "Silk.NET.OpenGL.Extensions.ImGui": "2.20.0"
+          "Silk.NET.OpenGL.Extensions.ImGui": "2.20.0",
+          "StbImageSharp": "2.27.13"
         },
         "runtime": {
           "Szeminarium1_24_02_17_2.dll": {}
@@ -295,6 +296,14 @@
           }
         }
       },
+      "StbImageSharp/2.27.13": {
+        "runtime": {
+          "lib/netstandard2.0/StbImageSharp.dll": {
+            "assemblyVersion": "2.27.13.0",
+            "fileVersion": "2.27.13.0"
+          }
+        }
+      },
       "System.Buffers/4.5.1": {},
       "System.Memory/4.5.5": {},
       "System.Numerics.Vectors/4.5.0": {},
@@ -561,6 +570,13 @@
       "sha512": "sha512-Os5752+77ft+73U7hYmlrVajCMoD/etss5jVUSUteyifLh71ieQMQ046SdhoEtltsm1MmTp02T986GsXu82+BQ==",
       "path": "silk.net.windowing.sdl/2.20.0",
       "hashPath": "silk.net.windowing.sdl.2.20.0.nupkg.sha512"
+    },
+    "StbImageSharp/2.27.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tHnP2RHgFzWbOS96UqvRO/LYU1WmpMT1bKiig45we+rpaXacBr11Fq2IBF+MqlgyLyNXxRz18E66qr4R9YlSbg==",
+      "path": "stbimagesharp/2.27.13",
+      "hashPath": "stbimagesharp.2.27.13.nupkg.sha512"
     },
     "System.Buffers/4.5.1": {
       "type": "package",

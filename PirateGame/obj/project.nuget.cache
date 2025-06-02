@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "xRExmcFcj9M=",
+  "dgSpecHash": "37ZqKOaMyfs=",
   "success": true,
   "projectFilePath": "/home/fepeti13/Desktop/University/II/II/grafika/PirateGame/Szeminarium1_24_02_17_2.csproj",
   "expectedPackageFiles": [
@@ -27,6 +27,7 @@
     "/home/fepeti13/.nuget/packages/silk.net.windowing.common/2.20.0/silk.net.windowing.common.2.20.0.nupkg.sha512",
     "/home/fepeti13/.nuget/packages/silk.net.windowing.glfw/2.20.0/silk.net.windowing.glfw.2.20.0.nupkg.sha512",
     "/home/fepeti13/.nuget/packages/silk.net.windowing.sdl/2.20.0/silk.net.windowing.sdl.2.20.0.nupkg.sha512",
+    "/home/fepeti13/.nuget/packages/stbimagesharp/2.27.13/stbimagesharp.2.27.13.nupkg.sha512",
     "/home/fepeti13/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
     "/home/fepeti13/.nuget/packages/system.memory/4.5.5/system.memory.4.5.5.nupkg.sha512",
     "/home/fepeti13/.nuget/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512",

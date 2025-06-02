@@ -219,3 +219,4 @@ D:/Koli/Munka/BBTE/Tantargyak/Grafika (MLM5060)/Kodok/Grafika-MLM5060/Szemi4/202
 /home/fepeti13/Desktop/University/II/II/grafika/PirateGame/obj/Debug/net8.0/Szeminarium1_24_02_17_2.pdb
 /home/fepeti13/Desktop/University/II/II/grafika/PirateGame/obj/Debug/net8.0/Szeminarium1_24_02_17_2.genruntimeconfig.cache
 /home/fepeti13/Desktop/University/II/II/grafika/PirateGame/obj/Debug/net8.0/ref/Szeminarium1_24_02_17_2.dll
+/home/fepeti13/Desktop/University/II/II/grafika/PirateGame/bin/Debug/net8.0/StbImageSharp.dll

@@ -22,13 +22,14 @@ namespace PirateShootingGame
         private static GlObject treeModel;  
         private static GlObject groundModel;
         private static GlObject playerModel;
-        private static Skybox skybox; // ONLY SKYBOX ADDITION
+        private static Skybox skybox;
 
         private static readonly string VertexShaderSource = @"
         #version 330 core
         layout (location = 0) in vec3 vPos;
         layout (location = 1) in vec4 vCol;
         layout (location = 2) in vec3 vNorm;
+        layout (location = 3) in vec2 vTexCoord;
 
         uniform mat4 uModel;
         uniform mat3 uNormal;
@@ -38,10 +39,12 @@ namespace PirateShootingGame
         out vec4 outCol;
         out vec3 outNormal;
         out vec3 outWorldPosition;
+        out vec2 outTexCoord;
 
         void main()
         {
             outCol = vCol;
+            outTexCoord = vTexCoord;
             gl_Position = uProjection * uView * uModel * vec4(vPos, 1.0);
             outNormal = uNormal * vNorm;
             outWorldPosition = vec3(uModel * vec4(vPos, 1.0));
@@ -55,12 +58,15 @@ namespace PirateShootingGame
         uniform vec3 lightPos;
         uniform vec3 viewPos;
         uniform float shininess;
+        uniform sampler2D diffuseTexture;
+        uniform bool hasTexture;
 
         out vec4 FragColor;
 
         in vec4 outCol;
         in vec3 outNormal;
         in vec3 outWorldPosition;
+        in vec2 outTexCoord;
 
         void main()
         {
@@ -79,8 +85,16 @@ namespace PirateShootingGame
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
             vec3 specular = specularStrength * spec * lightColor;
 
-            vec3 result = (ambient + diffuse + specular) * outCol.xyz;
-            FragColor = vec4(result, outCol.w);
+            // Get base color from texture or vertex color
+            vec4 baseColor;
+            if (hasTexture) {
+                baseColor = texture(diffuseTexture, outTexCoord);
+            } else {
+                baseColor = outCol;
+            }
+
+            vec3 result = (ambient + diffuse + specular) * baseColor.xyz;
+            FragColor = vec4(result, baseColor.w);
         }
         ";
 
@@ -179,10 +193,10 @@ namespace PirateShootingGame
             float[] groundColor = [0.2f, 0.7f, 0.2f, 1f]; 
             float[] playerColor = [0.8f, 0.6f, 0.4f, 1f]; 
 
-            
+            //"Resources/Pirate_Shipmate_Muscular/14052_Pirate_Shipmate_Muscular_v1_L3.obj"
             try
             {
-                pirateModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Pirate_Shipmate_Muscular/14052_Pirate_Shipmate_Muscular_v1_L3.obj", pirateColor);
+                pirateModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Pirate_Shipmate_Old/14053_Pirate_Shipmate_Old_v1_L1.obj", pirateColor);
                 Console.WriteLine("Successfully loaded pirates.obj");
             }
             catch (Exception ex)
@@ -214,7 +228,7 @@ namespace PirateShootingGame
             
             try
             {
-                playerModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Pirate_Shipmate_Old/14053_Pirate_Shipmate_Old_v1_L1.obj", playerColor);
+                playerModel = ObjResourceReader.CreateFromObjFile(Gl, "Resources/Pac-Man and the Ghostly Adventures/Pac-Man.obj", playerColor);
                 Console.WriteLine("Successfully loaded main-caracter.obj");
             }
             catch (Exception ex)
@@ -232,12 +246,12 @@ namespace PirateShootingGame
         {
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            // SKYBOX ADDITION - Render skybox first
+            // SKYBOX ADDITION
             var view = GetCurrentViewMatrix();
             var projection = GetCurrentProjectionMatrix();
             skybox.Render(view, projection);
 
-            // YOUR ORIGINAL RENDERING CODE UNCHANGED
+
             Gl.UseProgram(program);
 
             SetViewMatrix();
@@ -247,42 +261,48 @@ namespace PirateShootingGame
             SetViewerPosition();
             SetShininess();
 
-            
+            // ground
             SetModelMatrix(Matrix4X4.CreateScale(50f));
+            groundModel.SetTextureUniforms(program);
+            groundModel.BindTexture();
             Gl.BindVertexArray(groundModel.Vao);
             Gl.DrawElements(GLEnum.Triangles, groundModel.IndexArrayLength, GLEnum.UnsignedInt, null);
             Gl.BindVertexArray(0);
 
-            
+            //player
             if (!gameState.IsFirstPersonCamera)
             {
-                var playerTransform = Matrix4X4.CreateScale(0.01f) *  
-                                    Matrix4X4.CreateRotationX(-MathF.PI / 2) *  
+                var playerTransform = Matrix4X4.CreateScale(0.005f) *  
+                                    Matrix4X4.CreateRotationY(MathF.PI ) *  
                                     Matrix4X4.CreateRotationY(gameState.Player.Rotation) * 
                                     Matrix4X4.CreateTranslation(gameState.Player.Position.X, 0.5f, gameState.Player.Position.Z);
                 SetModelMatrix(playerTransform);
+                playerModel.SetTextureUniforms(program);
+                playerModel.BindTexture();
                 Gl.BindVertexArray(playerModel.Vao);
                 Gl.DrawElements(GLEnum.Triangles, playerModel.IndexArrayLength, GLEnum.UnsignedInt, null);
                 Gl.BindVertexArray(0);
             }
 
-            
+            // pirates
             foreach (var pirate in gameState.Pirates)
             {
                 if (pirate.IsAlive)
                 {
-                    var pirateTransform = Matrix4X4.CreateScale(0.01f) *  
+                    var pirateTransform = Matrix4X4.CreateScale(0.015f) *  
                                         Matrix4X4.CreateRotationX(-MathF.PI / 2) *  
                                         Matrix4X4.CreateRotationY(pirate.Rotation) * 
                                         Matrix4X4.CreateTranslation(pirate.Position.X, 0.5f, pirate.Position.Z);
                     SetModelMatrix(pirateTransform);
+                    pirateModel.SetTextureUniforms(program);
+                    pirateModel.BindTexture();
                     Gl.BindVertexArray(pirateModel.Vao);
                     Gl.DrawElements(GLEnum.Triangles, pirateModel.IndexArrayLength, GLEnum.UnsignedInt, null);
                     Gl.BindVertexArray(0);
                 }
             }
 
-            
+            // bullets
             foreach (var bullet in gameState.Bullets)
             {
                 if (bullet.IsActive)
@@ -290,18 +310,22 @@ namespace PirateShootingGame
                     var bulletTransform = Matrix4X4.CreateScale(0.1f) * 
                                         Matrix4X4.CreateTranslation(bullet.Position.X, bullet.Position.Y, bullet.Position.Z);
                     SetModelMatrix(bulletTransform);
+                    bulletModel.SetTextureUniforms(program);
+                    bulletModel.BindTexture();
                     Gl.BindVertexArray(bulletModel.Vao);
                     Gl.DrawElements(GLEnum.Triangles, bulletModel.IndexArrayLength, GLEnum.UnsignedInt, null);
                     Gl.BindVertexArray(0);
                 }
             }
 
-            
+            // trees
             foreach (var tree in gameState.Trees)
             {
                 var treeTransform = Matrix4X4.CreateScale(0.8f) *  
                                   Matrix4X4.CreateTranslation(tree.X, 0f, tree.Z);  
                 SetModelMatrix(treeTransform);
+                treeModel.SetTextureUniforms(program);
+                treeModel.BindTexture();
                 Gl.BindVertexArray(treeModel.Vao);
                 Gl.DrawElements(GLEnum.Triangles, treeModel.IndexArrayLength, GLEnum.UnsignedInt, null);
                 Gl.BindVertexArray(0);
@@ -359,7 +383,7 @@ namespace PirateShootingGame
             }
             
             ImGui.Separator();
-            ImGui.Text("Change with 'C' key");
+            ImGui.Text("Toggle with 'C' key");
             
             ImGui.End();
         }
@@ -371,7 +395,7 @@ namespace PirateShootingGame
             treeModel?.ReleaseGlObject();  
             groundModel?.ReleaseGlObject();
             playerModel?.ReleaseGlObject();
-            skybox?.Dispose(); // SKYBOX CLEANUP
+            skybox?.Dispose();
         }
 
         private static unsafe void SetModelMatrix(Matrix4X4<float> model)
@@ -392,8 +416,6 @@ namespace PirateShootingGame
             int loc = Gl.GetUniformLocation(program, "uView");
             Gl.UniformMatrix4(loc, 1, false, (float*)&view);
         }
-
-        // SKYBOX HELPER FUNCTIONS
         private static Matrix4X4<float> GetCurrentViewMatrix()
         {
             Vector3D<float> cameraPos;
